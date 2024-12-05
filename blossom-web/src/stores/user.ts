@@ -32,8 +32,8 @@ const initAuth = () => {
 
 const DEFAULT_USER_INFO = {
   id: '',
-  username: '暂未登录',
-  nickName: '暂未登录',
+  username: '',
+  nickName: '',
   avatar: '',
   remark: '',
   articleCount: 0,
@@ -45,10 +45,19 @@ const DEFAULT_USER_INFO = {
     WEB_LOGO_URL: '',
     WEB_GONG_WANG_AN_BEI: '',
     WEB_BLOG_URL_ERROR_TIP_SHOW: 1,
-    WEB_BLOG_LINKS: ''
+    WEB_BLOG_LINKS: '',
+    WEB_BLOG_SUBJECT_TITLE: '1',
+    WEB_BLOG_SHOW_ARTICLE_NAME: '1',
+    WEB_BLOG_COLOR: 'rgb(104, 104, 104)',
+    WEB_BLOG_WATERMARK_ENABLED: '0',
+    WEB_BLOG_WATERMARK_CONTENT: '',
+    WEB_BLOG_WATERMARK_FONTSIZE: 15,
+    WEB_BLOG_WATERMARK_COLOR: '',
+    WEB_BLOG_WATERMARK_GAP: 100
   }
 }
 
+export type UserParams = typeof DEFAULT_USER_INFO.userParams
 export type Userinfo = typeof DEFAULT_USER_INFO
 /**
  * 初始化用户信息
@@ -72,7 +81,7 @@ export const useUserStore = defineStore('userStore', {
       }
       return state.auth.status === AuthStatus.Succ
     },
-    userParams: (state): any => {
+    userParams: (state): UserParams => {
       return state.userinfo.userParams
     },
     links: (state): any => {

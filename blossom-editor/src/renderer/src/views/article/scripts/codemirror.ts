@@ -29,6 +29,11 @@ export const cwTheme: any = {
     backgroundColor: 'var(--bl-editor-gutters-bg-color)',
     color: 'var(--el-color-primary)'
   },
+  '.cm-panel.cm-search [name=close]': {
+    fontSize: '20px !important',
+    marginRight: '10px',
+    color: 'var(--el-color-primary)'
+  },
   '.cm-panels-top': {
     'z-index': '999',
     borderColor: 'var(--el-border-color)'
@@ -53,7 +58,13 @@ export const cwTheme: any = {
     backgroundColor: 'var(--bl-editor-gutters-bg-color)',
     borderColor: 'var(--bl-editor-gutters-border-color)',
     color: 'var(--bl-editor-gutters-color)',
-    fontSize: '12px'
+    fontSize: '12px',
+    width: '50px',
+    minWidth: '50px',
+    maxWidth: '50px'
+  },
+  '.cm-gutterElement': {
+    fontSize: '13px !important'
   },
   '.cm-activeLineGutter': {
     backgroundColor: 'var(--bl-editor-gutters-bg-color)',
@@ -63,7 +74,7 @@ export const cwTheme: any = {
     width: '40px'
   },
   '.cm-scroller': {
-    overflow: 'overlay',
+    // overflow: 'scroll',
     outline: 'none'
   },
   '.cm-foldGutter': {
@@ -217,7 +228,7 @@ export class CmWrapper {
           },
           {
             key: 'Alt-i',
-            mac: 'Cmd-i',
+            mac: 'Cmd-Alt-b',
             run(view: EditorView) {
               CmWrapper.commandItalic(view)
               return true
@@ -225,7 +236,7 @@ export class CmWrapper {
           },
           {
             key: 'Alt-s',
-            mac: 'Cmd-s',
+            mac: 'Alt-s',
             run(view: EditorView) {
               CmWrapper.commandStrike(view)
               return true
@@ -298,7 +309,7 @@ export class CmWrapper {
           },
           {
             key: 'Shift-Alt-f',
-            mac: 'Shift-Cmd-f',
+            mac: 'Shift-Alt-f',
             run(view: EditorView) {
               CmWrapper.commandFormatMarkdown(view)
               return true
@@ -364,7 +375,7 @@ export class CmWrapper {
     return editor.state.doc.toString()
   }
   /**
-   * 获取文档长度
+   * 获取文档的最大长度
    * @param editor
    * @returns 长度
    */
@@ -441,6 +452,9 @@ export class CmWrapper {
   }
   getDocLength = (): number => {
     return CmWrapper.getDocLength(this._editor)
+  }
+  getTotalLine = () => {
+    return this.editor.state.doc.lines
   }
   getSelectionRangesText = (): string => {
     return CmWrapper.getSelectionRangesText(this._editor)

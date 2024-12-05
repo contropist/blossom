@@ -47,12 +47,12 @@
     </select>
 
     <select id="listTodo" resultType="com.blossom.backend.server.todo.pojo.TodoEntity">
-        select min(id) as id,todo_id,todo_name,todo_type,todo_status,
+        select min(id) as id,todo_id,todo_name,todo_type,todo_status,task_status,
                count(*) as taskCount
-        from blossom_todo
-        where user_id = #{userId}
-        group by todo_id,todo_name,todo_type,todo_status
-        order by id desc
+          from blossom_todo
+         where user_id = #{userId}
+         group by todo_id,todo_name,todo_type,todo_status,task_status
+         order by id desc
     </select>
 
     <select id="selectByTodoId" resultType="com.blossom.backend.server.todo.pojo.TodoEntity">
@@ -134,6 +134,10 @@
          where user_id = #{userId}
            and id in
         <foreach collection="ids" item="item" open="(" close=")" separator=",">#{item}</foreach>
+    </delete>
+
+    <delete id="delByUserId">
+        delete from blossom_todo where user_id = #{userId}
     </delete>
 
 </mapper>

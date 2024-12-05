@@ -2,10 +2,15 @@
   @include box(100%, 100%);
   @include flex(row, flex-start, center);
 
+  .editor-resize-divider {
+    width: 2px;
+  }
+
   // 文档
   .doc-container {
     @include flex(column, flex-start, center);
     height: 100%;
+    min-width: 250px;
     font-weight: 200;
 
     .doc-tree-menu-container {
@@ -54,23 +59,23 @@
 
   // 编辑器内容
   .editor-container {
-    @include box(100%, 100%);
+    @include box(calc(100% - 2px), 100%);
     position: relative;
-    border-left: 1px solid var(--el-border-color);
     background-color: #ffffff00;
 
-    $heightTools: 45px;
+    $heightTools: 50px;
     $heightStatus: 28px;
-    $heightEP: calc(100% - 5px - #{$heightStatus} - #{$heightTools});
+    $heightEP: calc(100% - #{$heightStatus} - #{$heightTools});
 
     .editor-tools {
       @include box(100%, $heightTools);
+      padding: 5px 10px 10px 10px;
+      border-bottom: 1px solid var(--el-border-color);
     }
 
     .editor-preview {
       @include box(100%, $heightEP);
       @include flex(row, flex-start, center);
-      border-top: 1px solid var(--el-border-color);
       position: relative;
       font-family: inherit;
       font-size: inherit;
@@ -79,13 +84,15 @@
         position: absolute;
         z-index: 1999;
         height: 100%;
-        width: 100%;
+        width: calc(100% - 1px);
         background-color: var(--bl-html-color);
+        overflow: hidden;
+        right: 0;
       }
 
       .gutter-holder {
         height: 100%;
-        width: 50px;
+        width: 49px;
         position: absolute;
         background-color: var(--bl-editor-gutters-bg-color);
         border-right: 1px solid var(--bl-editor-gutters-border-color);
@@ -98,8 +105,13 @@
         @include box(50%, 100%);
         font-family: inherit;
         font-size: inherit;
-        overflow: overlay;
+        overflow: scroll;
         z-index: 2;
+
+        /* 定义滑块 内阴影+圆角 */
+        &::-webkit-scrollbar-thumb {
+          border-radius: 0;
+        }
 
         :deep(*) {
           font-family: inherit;
@@ -129,15 +141,62 @@
         }
       }
 
-      .resize-divider {
-        height: 100%;
-        border-left: 2px solid var(--el-border-color);
-        margin-left: 1px;
-        z-index: 3;
-        cursor: ew-resize;
+      .operator {
+        @include themeBorder(2px, #d8d8d841, #ffffff12);
+        width: 20px;
+        height: 75px;
+        padding-top: 5px;
+        background-color: var(--bl-html-color);
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+        position: absolute;
+        bottom: 10%;
+        left: calc(50% - 0.5px);
+        z-index: 4;
+        text-align: center;
+        transition: border 0.3s;
+        cursor: pointer;
 
         &:hover {
-          border-left: 2px dashed var(--el-color-primary) !important;
+          border: 2px solid var(--el-border-color);
+          .iconbl {
+            color: var(--el-border-color);
+          }
+        }
+
+        .iconbl {
+          @include themeColor(#d8d8d841, #ffffff12);
+          line-height: 20px;
+          font-size: 16px;
+          transition: color 0.3s;
+          &:hover {
+            color: var(--el-color-primary-light-3);
+          }
+          &:active {
+            transform: scale(0.9);
+          }
+        }
+        .bl-admonish-line {
+          font-size: 14px;
+        }
+
+        .bl-refresh-line {
+          font-size: 14px;
+        }
+
+        .bl-eye-line {
+          font-size: 18px;
+          margin-bottom: 7px;
+          transform: rotate(90deg);
+          &:active {
+            transform: scale(0.9) rotate(90deg);
+          }
+        }
+
+        .bl-scroll {
+          font-size: 19px;
+          margin-left: -2px;
+          margin-bottom: 2px;
         }
       }
 
@@ -146,16 +205,19 @@
         overflow-y: scroll;
         overflow-x: hidden;
         word-wrap: break-word;
-        padding: 10px 20px 0 20px;
+        padding: 10px 20px 0 30px;
         z-index: 3;
         font-family: inherit;
         font-size: inherit;
 
+        /* 定义滑块 内阴影+圆角 */
+        &::-webkit-scrollbar-thumb {
+          border-radius: 0;
+        }
+
         :deep(.katex > *) {
           font-size: 1.2em !important;
           font-family: 'KaTeX_Size1', sans-serif !important;
-          // font-size: 1.3em !important;
-          // font-family: 'KaTeX_Math', sans-serif !important;
         }
       }
     }
@@ -165,6 +227,5 @@
       border-top: 1px solid var(--el-border-color);
       z-index: 2;
     }
-
   }
 }

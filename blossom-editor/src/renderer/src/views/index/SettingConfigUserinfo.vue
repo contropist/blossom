@@ -1,9 +1,13 @@
 <template>
-  <div class="config-root">
+  <div class="config-root" v-loading="!userStore.isLogin" element-loading-spinner="none" element-loading-text="请登录后查看...">
     <div class="title">修改用户信息</div>
-    <div class="desc">用户的个人信息，若无内容请点击右侧刷新。<el-button @click="refreshUserinfo" text bg>刷新</el-button></div>
+    <div class="desc" style="margin-bottom: 0">用户的个人信息，若无内容请点击右侧刷新。</div>
+    <div class="desc">
+      <el-button @click="refreshUserinfo" text bg><span class="iconbl bl-refresh-line"></span>刷新信息</el-button>
+    </div>
+
     <el-form :model="userinfoForm" :rules="rules" label-position="right" label-width="130px" style="max-width: 800px" ref="UserinfoFormRef">
-      <el-form-item label="ID" prop="username">
+      <el-form-item label="ID" prop="id">
         <el-input v-model="userinfoForm.id" size="default" disabled>
           <template #prefix>
             <div class="iconbl bl-a-Securitypermissions-line" style="font-size: 20px"></div>
@@ -96,10 +100,10 @@ const userinfoForm = ref<UserinfoForm>({
   avatar: ''
 })
 const rules = ref<FormRules<UserinfoForm>>({
+  id: [{ required: true, message: '请填写用户ID', trigger: 'blur' }],
   username: [{ required: true, message: '请填写用户名', trigger: 'blur' }],
   nickName: [{ required: true, message: '请填写昵称', trigger: 'blur' }],
-  remark: [{ required: true, message: '请填写备注', trigger: 'blur' }],
-  avatar: [{ required: true, message: '请填写头像', trigger: 'blur' }]
+  remark: [{ required: true, message: '请填写备注', trigger: 'blur' }]
 })
 
 const getUserinfo = () => {
@@ -111,7 +115,7 @@ const getUserinfo = () => {
 const refreshUserinfo = () => {
   userinfoApi().then((resp) => {
     userinfoForm.value = resp.data
-    Notify.success('刷新用户信息成功', '刷新成功')
+    Notify.success('', '刷新成功')
   })
 }
 
@@ -120,7 +124,7 @@ const save = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid, _fields) => {
     if (valid) {
       userUpdApi(userinfoForm.value).then((_resp) => {
-        Notify.success('个人信息修改成功')
+        Notify.success('您的个人信息已变更', '修改成功')
         userStore.checkToken(
           () => {},
           () => {}

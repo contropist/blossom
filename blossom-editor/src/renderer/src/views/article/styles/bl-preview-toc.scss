@@ -4,101 +4,100 @@
   transition:
     width 0.2s,
     height 0.2s;
-
-  .toc-content {
-    overflow-y: overlay;
-    padding-top: 10px;
-
-    .toc-1,
-    .toc-2,
-    .toc-3,
-    .toc-4,
-    .toc-5,
-    .toc-6 {
-      cursor: pointer;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      white-space: pre;
-
-      &:hover {
-        font-weight: bold;
-      }
-    }
-
-    .toc-1 {
-      margin-top: 5px;
-      padding-top: 5px;
-
-      &:first-child {
-        margin: 0;
-        padding: 0;
-        border: 0;
-      }
-    }
-
-    .toc-2 {
-      &::before {
-        content: '  ';
-      }
-    }
-
-    .toc-3 {
-      &::before {
-        content: '    ';
-      }
-    }
-
-    .toc-4 {
-      &::before {
-        content: '      ';
-      }
-    }
-
-    .toc-5 {
-      &::before {
-        content: '        ';
-      }
-    }
-
-    .toc-6 {
-      &::before {
-        content: '          ';
-      }
-    }
-  }
 }
 
 // 块的目录, 用在新窗口中
 .bl-preview-toc-block {
   @include box(400px, 100%);
   color: #5e5e5e;
-  border-right: 3px solid var(--bl-preview-toc-border-color);
+  border-left: 1px solid var(--bl-preview-toc-border-color);
+  padding-right: 5px;
 
-  .toc-title {
-    @include box(100%, 50px);
-    @include font(30px, 700);
-    border-top: 3px solid var(--bl-preview-toc-border-color);
-    margin-top: 10px;
-    padding: 10px 0;
+  .doc-info {
+    .doc-name {
+      color: #ababab;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      margin-bottom: 10px;
+    }
+    .doc-subtitle {
+      @include flex(row, flex-start, center);
+      @include font(12px);
+      font-family: 'Jetbrains Mono';
+      width: 100%;
+      color: #ababab;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      white-space: pre;
+      margin-top: 5px;
+    }
   }
 
-  .toc-subtitle {
-    @include box(100%, 20px);
-    @include font(12px);
-    color: #ababab;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    white-space: pre;
+  .toc-title {
+    @include font(25px, 700);
+    width: 100%;
+    border-top: 1px solid var(--bl-preview-toc-border-color);
+    margin-top: 10px;
+    padding-top: 8px;
+    margin-bottom: 8px;
   }
 
   .toc-content {
-    @include box(100%, calc(100% - 20px - 20px));
+    @include box(100%, calc(100% - 130px));
     @include font(14px);
+    padding-bottom: 20px;
+    padding-left: 5px;
+    overflow-y: scroll;
 
-    .toc-1 {
-      border-top: 2px solid var(--bl-preview-toc-border-color);
+    .toc-item {
+      width: auto;
+      padding: 4px 0;
+      color: #5e5e5e;
+      position: relative;
+      cursor: pointer;
+
+      &:hover {
+        color: var(--el-color-primary);
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 20%;
+        left: -5px;
+        width: 2px;
+        height: 60%;
+        background: var(--el-color-primary-light-4);
+        border-radius: 10px;
+        opacity: 0;
+        transition: opacity 0.1s;
+      }
+
+      &:hover::after {
+        opacity: 1;
+      }
+    }
+
+    .toc-2 {
+      margin-left: 10px;
+    }
+
+    .toc-3 {
+      margin-left: 20px;
+    }
+
+    .toc-4 {
+      margin-left: 30px;
+    }
+
+    .toc-5 {
+      margin-left: 40px;
+    }
+
+    .toc-6 {
+      margin-left: 50px;
     }
   }
 }
@@ -139,11 +138,60 @@
 
   .toc-content {
     @include themeColor(#e2e2e2, #bcbcbc);
+    overflow-y: scroll;
     width: 100%;
     max-height: calc(700px - 150px - 60px - 20px);
 
     .toc-1 {
       @include themeBorder(2px, #a3a3a3, #a3a3a3, 'top');
+    }
+
+    .toc-1,
+    .toc-2,
+    .toc-3,
+    .toc-4,
+    .toc-5,
+    .toc-6 {
+      cursor: pointer;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      white-space: pre;
+
+      &:hover {
+        font-weight: bold;
+      }
+    }
+
+    .toc-1 {
+      margin-top: 5px;
+      padding-top: 5px;
+
+      &:first-child {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+    }
+
+    .toc-2 {
+      padding-left: 10px;
+    }
+
+    .toc-3 {
+      padding-left: 20px;
+    }
+
+    .toc-4 {
+      padding-left: 30px;
+    }
+
+    .toc-5 {
+      padding-left: 40px;
+    }
+
+    .toc-6 {
+      padding-left: 50px;
     }
   }
 
@@ -206,9 +254,4 @@
 
 .bl-preview-toc-absolute.is-expand-close {
   @include box(50px, 40px);
-  // .toc-title {
-  //   span {
-  //     display: none;
-  //   }
-  // }
 }

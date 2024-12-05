@@ -1,9 +1,12 @@
 <template>
-  <div class="config-root" v-loading="auth.status !== '已登录'" element-loading-spinner="none" element-loading-text="请登录后使用服务端设置...">
+  <div class="config-root" v-loading="!userStore.isLogin" element-loading-spinner="none" element-loading-text="请登录后查看...">
     <div class="title">服务器配置</div>
-    <div class="desc">服务器各项参数配置，若无内容请点击右侧刷新。<el-button @click="refreshParam" text bg>刷新</el-button></div>
+    <div class="desc" style="margin-bottom: 0">服务器各项参数配置，若无内容请点击下方刷新。只有管理员用户具有操作服务器配置的权限。</div>
+    <div class="desc">
+      <el-button @click="refreshParam" text bg><span class="iconbl bl-refresh-line"></span>刷新参数</el-button>
+    </div>
 
-    <el-form v-if="auth.status == '已登录'" :model="serverParamForm" label-position="right" label-width="130px" style="max-width: 800px">
+    <el-form :model="serverParamForm" label-position="right" label-width="130px" style="max-width: 800px">
       <el-form-item label="文件访问地址" :required="true">
         <el-input
           size="default"
@@ -17,7 +20,7 @@
         <el-button size="default" style="width: 90px; margin-left: 10px" @click="autuUpdBlossomOSDomain">点击自动配置</el-button>
         <div class="conf-tip">
           文件访问地址。需以<code style="color: var(--el-color-danger)">/pic</code>结尾。你可以点击右上角的<span
-            class="iconbl bl-blog"
+            class="iconbl bl-caution-line"
             style="padding: 0 3px"></span
           >图标进行快捷配置。
         </div>
@@ -70,7 +73,7 @@
       <el-form-item label="和风天气 Key">
         <el-input size="default" v-model="serverParamForm.HEFENG_KEY" @change="(cur: any) => updParam('HEFENG_KEY', cur)"></el-input>
         <div class="conf-tip">
-          和风天气的 API KEY，申请方式请查看<a href="https://www.wangyunf.com/blossom-doc/guide/hefeng.html">《和风天气配置文档》</a
+          和风天气的 API KEY，申请方式请查看<a href="https://www.wangyunf.com/blossom-doc/guide/hefeng.html" target="_blank">《和风天气配置文档》</a
           >。修改后点击首页天气右上角的刷新按钮 <span class="iconbl bl-refresh-smile"></span> 获取最新天气。
         </div>
       </el-form-item>
@@ -100,15 +103,15 @@
         </el-input>
       </el-form-item>
     </el-form>
-    <div class="server-config">
-      {{ userinfo }}
-    </div>
+    <!-- <div class="server-config">
+      {{ userStore.userinfo }}
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { storeToRefs } from 'pinia'
+import { ElMessage } from 'element-plus'
 import { useServerStore } from '@renderer/stores/server'
 import { KEY_BLOSSOM_OBJECT_STORAGE_DOMAIN, useUserStore } from '@renderer/stores/user'
 import { paramListApi, paramUpdApi, paramRefreshApi } from '@renderer/api/blossom'
@@ -118,7 +121,6 @@ import dayjs from 'dayjs'
 
 const serverStore = useServerStore()
 const userStore = useUserStore()
-const { userinfo, auth } = storeToRefs(userStore)
 
 const serverParamForm = ref({
   WEB_ARTICLE_URL: '',
@@ -178,7 +180,7 @@ const getParamList = () => {
 
 const refreshParam = () => {
   paramRefreshApi().then((_) => {
-    Notify.success('刷新参数成功', '刷新成功')
+    Notify.success('', '刷新成功')
     getParamList()
     userStore.getUserinfo()
   })
@@ -187,6 +189,7 @@ const refreshParam = () => {
 const updParam = (paramName: string, paramValue: string) => {
   paramUpdApi({ paramName: paramName, paramValue: paramValue }).then((_resp) => {
     userStore.getUserinfo()
+    ElMessage.info({ message: '保存成功', grouping: true })
   })
 }
 

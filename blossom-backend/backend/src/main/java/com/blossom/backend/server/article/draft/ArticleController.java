@@ -7,13 +7,17 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.blossom.backend.base.auth.AuthContext;
 import com.blossom.backend.base.auth.annotation.AuthIgnore;
+import com.blossom.backend.base.paramu.UserParamEnum;
+import com.blossom.backend.base.paramu.UserParamService;
 import com.blossom.backend.base.user.UserService;
 import com.blossom.backend.server.article.draft.pojo.*;
 import com.blossom.backend.server.article.open.ArticleOpenService;
 import com.blossom.backend.server.article.open.pojo.ArticleOpenEntity;
 import com.blossom.backend.server.doc.DocService;
+import com.blossom.backend.server.doc.DocSortChecker;
 import com.blossom.backend.server.doc.DocTypeEnum;
 import com.blossom.backend.server.folder.FolderService;
+import com.blossom.backend.server.folder.FolderTypeEnum;
 import com.blossom.backend.server.folder.pojo.FolderEntity;
 import com.blossom.backend.server.utils.ArticleUtil;
 import com.blossom.backend.server.utils.DocUtil;
@@ -50,13 +54,15 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("/article")
 public class ArticleController {
-
     private final ArticleService baseService;
     private final ArticleOpenService openService;
     private final FolderService folderService;
     private final UserService userService;
     private final ArticleTempVisitService tempVisitService;
     private final DocService docService;
+    private final DocSortChecker docSortChecker;
+    private final ImportManager importManager;
+    private final UserParamService userParamService;
 
     /**
      * 查询列表
@@ -92,7 +98,7 @@ public class ArticleController {
         if (showHtml == null) {
             showHtml = false;
         }
-        ArticleEntity article = baseService.selectById(id, showToc, showMarkdown, showHtml);
+        ArticleEntity article = baseService.selectById(id, showToc, showMarkdown, showHtml, AuthContext.getUserId());
         XzException400.throwBy(ObjUtil.isNull(article), "文章不存在");
         ArticleInfoRes res = article.to(ArticleInfoRes.class);
         res.setTags(DocUtil.toTagList(article.getTags()));
@@ -122,9 +128,9 @@ public class ArticleController {
         ArticleEntity article = req.to(ArticleEntity.class);
         article.setTags(DocUtil.toTagStr(req.getTags()));
         article.setUserId(AuthContext.getUserId());
-        // 如果新增到顶部, 获取最小的
+        // 如果新增到顶部, 获取最小的排序
         if (BooleanUtil.isTrue(req.getAddToLast())) {
-            article.setSort(docService.selectMinSortByPid(req.getPid()) + 1);
+            article.setSort(docService.selectMaxSortByPid(req.getPid(), AuthContext.getUserId(), FolderTypeEnum.ARTICLE) + 1);
         }
         return R.ok(baseService.insert(article));
     }
@@ -136,9 +142,19 @@ public class ArticleController {
      * @apiNote 该接口只能修改文章的基本信息, 正文及版本修改请使用 "/upd/content" 接口，或者 {@link ArticleService#updateContentById(ArticleEntity)}
      */
     @PostMapping("/upd")
-    public R<Long> insert(@Validated @RequestBody ArticleUpdReq req) {
+    public R<Long> update(@Validated @RequestBody ArticleUpdReq req) {
         ArticleEntity article = req.to(ArticleEntity.class);
         article.setTags(DocUtil.toTagStr(req.getTags()));
+        article.setUserId(AuthContext.getUserId());
+        // 检查排序是否重复
+//        if (req.getSort() != null && req.getPid() != null) {
+//            final long newPid = req.getPid();
+//            docSortChecker.checkUnique(CollUtil.newArrayList(newPid),
+//                    null,
+//                    CollUtil.newArrayList(article),
+//                    FolderTypeEnum.ARTICLE,
+//                    AuthContext.getUserId());
+//        }
         return R.ok(baseService.update(article));
     }
 
@@ -166,18 +182,19 @@ public class ArticleController {
     @PostMapping("/upd/name")
     public R<?> updName(@Validated @RequestBody ArticleUpdNameReq name) {
         ArticleEntity article = name.to(ArticleEntity.class);
+        article.setUserId(AuthContext.getUserId());
         baseService.update(article);
         return R.ok();
     }
 
     /**
-     * 为文章快速增加/删除标签
+     * 快速增加/删除标签
      *
      * @since 1.10.0
      */
     @PostMapping("/upd/tag")
     public R<List<String>> updTag(@Validated @RequestBody ArticleUpdTagReq req) {
-        ArticleEntity info = baseService.selectById(req.getId(), false, false, false);
+        ArticleEntity info = baseService.selectById(req.getId(), false, false, false, AuthContext.getUserId());
         List<String> tags = DocUtil.toTagList(info.getTags());
         if (tags.contains(req.getTag().toLowerCase()) || tags.contains(req.getTag().toUpperCase())) {
             tags.remove(req.getTag().toLowerCase());
@@ -187,6 +204,7 @@ public class ArticleController {
         }
         ArticleEntity article = req.to(ArticleEntity.class);
         article.setTags(DocUtil.toTagStr(tags));
+        article.setUserId(AuthContext.getUserId());
         baseService.update(article);
         return R.ok(tags);
     }
@@ -196,7 +214,7 @@ public class ArticleController {
      */
     @PostMapping("/del")
     public R<?> delete(@Validated @RequestBody DelReq req) {
-        baseService.delete(req.getId());
+        baseService.delete(req.getId(), AuthContext.getUserId());
         return R.ok();
     }
 
@@ -207,7 +225,9 @@ public class ArticleController {
      */
     @PostMapping("/star")
     public R<Long> star(@Validated @RequestBody ArticleStarReq req) {
-        return R.ok(baseService.update(req.to(ArticleEntity.class)));
+        ArticleEntity article = req.to(ArticleEntity.class);
+        article.setUserId(AuthContext.getUserId());
+        return R.ok(baseService.update(article));
     }
 
     /**
@@ -219,14 +239,13 @@ public class ArticleController {
      */
     @GetMapping("/download")
     public void download(@RequestParam("id") Long id, HttpServletResponse response) throws IOException {
-        ArticleEntity article = baseService.selectById(id, false, true, false);
+        ArticleEntity article = baseService.selectById(id, false, true, false, AuthContext.getUserId());
         if (StrUtil.isBlank(article.getMarkdown())) {
-            throw new IllegalArgumentException("文章内容为空,无法导出");
+            article.setMarkdown("文章无内容");
         }
         try (InputStream is = new ByteArrayInputStream(article.getMarkdown().getBytes(StandardCharsets.UTF_8));
              BufferedInputStream bis = new BufferedInputStream(is)) {
             String filename = URLEncodeUtil.encode(article.getName() + ".md");
-
             DownloadUtil.forceDownload(response, bis, filename);
         }
     }
@@ -240,11 +259,19 @@ public class ArticleController {
      */
     @GetMapping("/download/html")
     public void downloadHtml(@RequestParam("id") Long id, HttpServletResponse response) throws IOException {
-        ArticleEntity article = baseService.selectById(id, false, false, true);
+        ArticleEntity article = baseService.selectById(id, false, false, true, AuthContext.getUserId());
         if (StrUtil.isBlank(article.getHtml())) {
-            throw new IllegalArgumentException("文章内容为空,无法导出");
+            article.setHtml("<span>文章无内容</span>");
         }
-        String reportHtml = ArticleUtil.toHtml(article, userService.selectById(AuthContext.getUserId()));
+        String reportHtml = ArticleUtil.toHtml(article,
+                userService.selectById(AuthContext.getUserId()),
+                userParamService.getValue(AuthContext.getUserId(), UserParamEnum.WEB_BLOG_COLOR).getParamValue(),
+                userParamService.getValue(AuthContext.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_ENABLED).getParamValue(),
+                userParamService.getValue(AuthContext.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_CONTENT).getParamValue(),
+                userParamService.getValue(AuthContext.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_FONTSIZE).getParamValue(),
+                userParamService.getValue(AuthContext.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_COLOR).getParamValue(),
+                userParamService.getValue(AuthContext.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_GAP).getParamValue()
+        );
         try (InputStream is = new ByteArrayInputStream(reportHtml.getBytes(StandardCharsets.UTF_8));
              BufferedInputStream bis = new BufferedInputStream(is)) {
             String filename = URLEncodeUtil.encode(article.getName() + ".html");
@@ -259,22 +286,27 @@ public class ArticleController {
      * @param pid  上级菜单
      */
     @PostMapping("import")
-    public R<?> upload(@RequestParam("file") MultipartFile file, @RequestParam(value = "pid") Long pid) {
+    public R<?> upload(@RequestParam("file") MultipartFile file, @RequestParam(value = "pid") Long pid, @RequestParam(value = "batchId") String batchId) {
         try {
             String suffix = FileUtil.getSuffix(file.getOriginalFilename());
             if (!"txt".equals(suffix) && !"md".equals(suffix)) {
-                throw new XzException404("不支持的文件类型: [" + suffix + "]");
+                throw new XzException400("不支持的文件类型: [" + suffix + "]");
             }
             FolderEntity folder = folderService.selectById(pid);
             XzException404.throwBy(ObjUtil.isNull(folder), "上级文件夹不存在");
             String content = new String(file.getBytes(), StandardCharsets.UTF_8);
             ArticleEntity article = new ArticleEntity();
             article.setMarkdown(content);
+            article.setVersion(1);
             article.setPid(pid);
+            article.setUserId(AuthContext.getUserId());
             article.setName(FileUtil.getPrefix(file.getOriginalFilename()));
+//            article.setWords(ArticleUtil.statWords(content));
+            article.setSort(importManager.getSort(batchId, pid, AuthContext.getUserId()));
             baseService.insert(article);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new XzException400("上传失败");
         }
         return R.ok();
     }
@@ -282,13 +314,19 @@ public class ArticleController {
     /**
      * 创建文章的临时访问缓存
      *
-     * @param id 文章ID
+     * @param id       文章ID
+     * @param duration 临时访问的过期时间
      * @return 临时访问Key
      * @since 1.9.0
      */
     @GetMapping("/temp/key")
-    public R<String> createTempVisitKey(@RequestParam("id") Long id) {
-        return R.ok(tempVisitService.create(id, AuthContext.getUserId()));
+    public R<String> createTempVisitKey(@RequestParam("id") Long id,
+                                        @RequestParam(value = "duration", required = false) Long duration) {
+        if (duration == null) {
+            duration = 3 * 60L;
+        }
+        log.info("创建文章临时访问权限 [{}:{}m]", id, duration);
+        return R.ok(tempVisitService.create(id, AuthContext.getUserId(), duration));
     }
 
     /**
@@ -302,8 +340,17 @@ public class ArticleController {
     public String content(@RequestParam("k") String s, HttpServletResponse resp) {
         ArticleTempVisitService.TempVisit visit = tempVisitService.get(s);
         XzException404.throwBy(ObjUtil.isNull(visit), "文章不存在或您无权限查看");
-        ArticleEntity article = baseService.selectById(visit.getArticleId(), false, false, true);
+        ArticleEntity article = baseService.selectById(visit.getArticleId(), false, false, true, visit.getUserId());
         resp.setContentType("text/html");
-        return ArticleUtil.toHtml(article, userService.selectById(visit.getUserId()));
+        return ArticleUtil.toHtml(
+                article,
+                userService.selectById(visit.getUserId()),
+                userParamService.getValue(visit.getUserId(), UserParamEnum.WEB_BLOG_COLOR).getParamValue(),
+                userParamService.getValue(visit.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_ENABLED).getParamValue(),
+                userParamService.getValue(visit.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_CONTENT).getParamValue(),
+                userParamService.getValue(visit.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_FONTSIZE).getParamValue(),
+                userParamService.getValue(visit.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_COLOR).getParamValue(),
+                userParamService.getValue(visit.getUserId(), UserParamEnum.WEB_BLOG_WATERMARK_GAP).getParamValue()
+        );
     }
 }

@@ -1,6 +1,7 @@
 declare interface DocTree {
   /** ID */
-  i: number
+  i: string
+  p: string
   /** Name */
   n: string
   /** open: 0:否;1:是; */

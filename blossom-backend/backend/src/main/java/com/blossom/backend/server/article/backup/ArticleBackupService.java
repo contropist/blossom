@@ -2,7 +2,6 @@ package com.blossom.backend.server.article.backup;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
@@ -10,8 +9,11 @@ import cn.hutool.core.util.ZipUtil;
 import com.blossom.backend.base.param.ParamEnum;
 import com.blossom.backend.base.param.ParamService;
 import com.blossom.backend.base.param.pojo.ParamEntity;
+import com.blossom.backend.base.paramu.UserParamEnum;
+import com.blossom.backend.base.paramu.UserParamService;
 import com.blossom.backend.base.user.UserService;
 import com.blossom.backend.base.user.pojo.UserEntity;
+import com.blossom.backend.server.article.backup.pojo.BackupFile;
 import com.blossom.backend.server.article.draft.ArticleService;
 import com.blossom.backend.server.article.draft.pojo.ArticleEntity;
 import com.blossom.backend.server.article.reference.ArticleReferenceService;
@@ -26,10 +28,9 @@ import com.blossom.backend.server.utils.ArticleUtil;
 import com.blossom.common.base.enums.YesNo;
 import com.blossom.common.base.exception.XzException500;
 import com.blossom.common.base.util.DateUtils;
+import com.blossom.common.base.util.PrimaryKeyUtil;
 import com.blossom.common.base.util.SortUtil;
 import com.blossom.common.iaas.IaasProperties;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,10 +38,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -61,6 +59,9 @@ public class ArticleBackupService {
     private ParamService paramService;
 
     @Autowired
+    private UserParamService userParamService;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -74,7 +75,6 @@ public class ArticleBackupService {
     private Executor executor;
 
     public static final String ERROR_MSG = String.format("[文章备份] 备份失败, 未配置备份路径 [%s]", ParamEnum.BACKUP_PATH.name());
-    private static final String SEPARATOR = "_";
 
     /**
      * 查看记录
@@ -131,6 +131,13 @@ public class ArticleBackupService {
         // 用户信息
         UserEntity user = userService.selectById(userId);
 
+        final String BLOG_COLOR = userParamService.getValue(userId, UserParamEnum.WEB_BLOG_COLOR).getParamValue();
+        final String WATER_ENABLED = userParamService.getValue(userId, UserParamEnum.WEB_BLOG_WATERMARK_ENABLED).getParamValue();
+        final String WATERMARK_CONTENT = userParamService.getValue(userId, UserParamEnum.WEB_BLOG_WATERMARK_CONTENT).getParamValue();
+        final String WATERMARK_FONTSIZE = userParamService.getValue(userId, UserParamEnum.WEB_BLOG_WATERMARK_FONTSIZE).getParamValue();
+        final String WATERMARK_COLOR = userParamService.getValue(userId, UserParamEnum.WEB_BLOG_WATERMARK_COLOR).getParamValue();
+        final String WATERMARK_GAP = userParamService.getValue(userId, UserParamEnum.WEB_BLOG_WATERMARK_GAP).getParamValue();
+
         final File backLogFile = new File(backupFile.getRootPath() + "/" + "log.txt");
         final List<String> backLogs = new ArrayList<>();
         log.info("[文章备份] 开始备份, 本次备份文件名称 [{}], 用户ID [{}]", backupFile.getFilename(), userId);
@@ -164,12 +171,24 @@ public class ArticleBackupService {
             int idLen = String.valueOf(allContents.stream()
                     .map(ArticleEntity::getId).max(SortUtil.longSort).orElse((1L))).length();
 
+            // 记录已经保存的文件
+            Set<String> exists = new HashSet<>();
+
             backLogs.add("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ↓↓ 文章列表 ↓↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             backLogs.add("┃ 排序 [ID] [版本] [时间] 文章路径");
             backLogs.add("┠────────────────────────────────────────────────────────────────────────────");
             for (DocTreeRes article : articles) {
+                String name = clearPath(article.getN());
+                // 处理文章或文件夹重名的情况
+                if (exists.contains(name)) {
+                    name = name + "_" + article.getI();
+                    if (exists.contains(name)) {
+                        name = name + "_" + PrimaryKeyUtil.nextId();
+                    }
+                }
+                exists.add(name);
                 // 创建文章 file
-                File file = new File(backupFile.getRootPath() + "/" + clearPath(article.getN()) + getArticleSuffix(type));
+                File file = new File(backupFile.getRootPath() + "/" + name + getArticleSuffix(type));
                 // 导出的文章正文
                 ArticleEntity articleDetail = markdowns.get(article.getI());
                 if (articleDetail == null) {
@@ -179,7 +198,9 @@ public class ArticleBackupService {
                 articleDetail.setName(article.getN());
 
                 // 文章 markdown 内容
-                String content = getContentByType(articleDetail, type, user);
+                String content = getContentByType(articleDetail, type, user,
+                        BLOG_COLOR, WATER_ENABLED, WATERMARK_CONTENT, WATERMARK_FONTSIZE, WATERMARK_COLOR, WATERMARK_GAP
+                );
                 content = formatContent(content, toLocal, article.getI(), article.getN());
                 String id = String.valueOf(articleDetail.getId());
                 String version = String.valueOf(articleDetail.getVersion());
@@ -202,6 +223,7 @@ public class ArticleBackupService {
             if (toLocal == YesNo.YES) {
                 backLogs.add("");
                 if (articleId != null) {
+                    // 查询文章引用的图片
                     List<ArticleReferenceEntity> refs = referenceService.listPics(articleId);
                     PictureEntity where = new PictureEntity();
                     where.setUrls(refs.stream().map(ArticleReferenceEntity::getTargetUrl).collect(Collectors.toList()));
@@ -209,26 +231,33 @@ public class ArticleBackupService {
                     backLogs.add("[图片备份] 图片个数: " + pics.size());
                     backLogs.add("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ↓↓ 图片列表 ↓↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                     for (PictureEntity pic : pics) {
-                        backLogs.add("┃ " + pic.getPathName());
-                        FileUtil.copy(
-                                pic.getPathName(),
-                                backupFile.getRootPath() + "/" + pic.getPathName(),
-                                true);
+                        try {
+                            FileUtil.copy(
+                                    pic.getPathName(),
+                                    backupFile.getRootPath() + "/" + pic.getPathName(),
+                                    true);
+                            backLogs.add("┃ " + pic.getPathName());
+                        } catch (Exception e) {
+                            backLogs.add("┃ [警告] " + pic.getPathName() + " 未在存储路径中找到");
+                            log.warn("{} 未在存储路径中找到", pic.getPathName());
+                        }
                     }
                 }
                 // 备份全部图片
                 else {
-                    List<File> files = FileUtil.loopFiles(FileUtil.newFile(iaasProperties.getBlos().getDefaultPath() + "/U" + userId), null);
-                    backLogs.add("[图片备份] 图片个数: " + files.size());
+                    List<File> pics = FileUtil.loopFiles(FileUtil.newFile(iaasProperties.getBlos().getDefaultPath() + "/U" + userId), null);
+                    backLogs.add("[图片备份] 图片个数: " + pics.size());
                     backLogs.add("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ↓↓ 图片列表 ↓↓ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                    for (File file : files) {
+                    for (File file : pics) {
                         backLogs.add(file.getPath());
                     }
-                    FileUtil.copy(
-                            iaasProperties.getBlos().getDefaultPath() + "/U" + userId,
-                            backupFile.getRootPath() + "/" + iaasProperties.getBlos().getDefaultPath(),
-                            true);
+                    if (CollUtil.isNotEmpty(pics)) {
+                        FileUtil.copy(
+                                iaasProperties.getBlos().getDefaultPath() + "/U" + userId,
+                                backupFile.getRootPath() + "/" + iaasProperties.getBlos().getDefaultPath(),
+                                true);
 
+                    }
                 }
                 backLogs.add("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ↑↑ 图片列表 ↑↑ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
@@ -305,7 +334,8 @@ public class ArticleBackupService {
         req.setArticleId(articleId);
         List<DocTreeRes> docs = docService.listTree(req);
         List<DocTreeRes> articles = new ArrayList<>();
-        findArticle("", docs, articles);
+        Set<String> exists = new HashSet<>();
+        findArticle("", docs, articles, exists);
         return articles;
     }
 
@@ -315,15 +345,20 @@ public class ArticleBackupService {
      * @param prefix   上级文件夹名称
      * @param docs     文章树状列表
      * @param articles 拼接结果列表, 虽然是 DocTreeRes 对象, 但不是树状结构
+     * @param exists   判断文件夹是否重名
      */
-    private void findArticle(String prefix, List<DocTreeRes> docs, List<DocTreeRes> articles) {
+    private void findArticle(String prefix, List<DocTreeRes> docs, List<DocTreeRes> articles, Set<String> exists) {
         if (CollUtil.isEmpty(docs)) {
             return;
         }
         for (DocTreeRes doc : docs) {
+            if (exists.contains(doc.getN())) {
+                doc.setN(doc.getN() + "_" + doc.getI());
+            }
+            exists.add(doc.getN());
             doc.setN(prefix + "/" + doc.getN());
             if (CollUtil.isNotEmpty(doc.getChildren())) {
-                findArticle(doc.getN(), doc.getChildren(), articles);
+                findArticle(doc.getN(), doc.getChildren(), articles, exists);
             }
             if (doc.getTy().equals(DocTypeEnum.A.getType())) {
                 articles.add(doc);
@@ -334,18 +369,31 @@ public class ArticleBackupService {
     /**
      * 根据类型判断是获取 markdown 内容还是 html 内容
      *
-     * @param article 文章
-     * @param type    类型
-     * @return 对应的内容
+     * @param article          文章
+     * @param type             类型
+     * @param user             用户信息
+     * @param blogColor        主题色
+     * @param watermarkEnabled 开启水印
+     * @param watermarkContent 水印内容
+     * @param waterFontSize    水印字体大小
+     * @param waterColor       水印颜色
+     * @param waterGap         水印密集度
+     * @return
      */
-    private String getContentByType(ArticleEntity article, BackupTypeEnum type, UserEntity user) {
+    private String getContentByType(ArticleEntity article, BackupTypeEnum type, UserEntity user,
+                                    String blogColor,
+                                    String watermarkEnabled,
+                                    String watermarkContent,
+                                    String waterFontSize,
+                                    String waterColor,
+                                    String waterGap) {
         if (type == BackupTypeEnum.MARKDOWN) {
             return StrUtil.isBlank(article.getMarkdown()) ? "文章无内容" : article.getMarkdown();
         } else if (type == BackupTypeEnum.HTML) {
             ArticleEntity export = new ArticleEntity();
             export.setName(article.getName().substring(article.getName().lastIndexOf("/")));
             export.setHtml(article.getHtml());
-            return ArticleUtil.toHtml(article, user);
+            return ArticleUtil.toHtml(article, user, blogColor, watermarkEnabled, watermarkContent, waterFontSize, waterColor, waterGap);
         }
         return "";
     }
@@ -365,7 +413,7 @@ public class ArticleBackupService {
         }
 
         List<ArticleReferenceEntity> refs = referenceService.listPics(articleId);
-        final String domain = iaasProperties.getBlos().getDomain();
+        final String domain = paramService.getDomain();
 
         // 计算字符出现的次数
         int separatorCount = countChar(articleName, '/');
@@ -384,12 +432,18 @@ public class ArticleBackupService {
             }
             String localPath = parent.substring(0, parent.length() > 0 ? parent.length() - 1 : 0) + ref.getTargetUrl().replace(domain, "");
             content = content.replaceAll(ref.getTargetUrl(), localPath);
-            System.out.println(localPath);
         }
         return content;
 
     }
 
+    /**
+     * 计算指定字符在字符串中出现的此处
+     *
+     * @param str    字符串
+     * @param target 查询字符
+     * @return 出现次数
+     */
     private static int countChar(String str, char target) {
         int times = 0;
         for (int i = 0; i < str.length(); i++) {
@@ -427,110 +481,4 @@ public class ArticleBackupService {
                 .replaceAll("\\|", "")
                 ;
     }
-
-    /**
-     * 备份文件
-     */
-    @Data
-    public static class BackupFile {
-        /**
-         * 用户ID
-         */
-        private String userId;
-        /**
-         * 备份日期 YYYYMMDD
-         * @mock 20230101
-         */
-        private String date;
-        /**
-         * 备份时间 HHMMSS
-         * @mock 123001
-         */
-        private String time;
-        /**
-         * 备份的日期和时间, yyyy-MM-dd HH:mm:ss
-         */
-        private Date datetime;
-        /**
-         * 备份包的名称
-         */
-        private String filename;
-        /**
-         * 备份包路径
-         */
-        private String path;
-
-        /**
-         * 本地文件
-         */
-        @JsonIgnore
-        private File file;
-        /**
-         * 文件大小
-         */
-        private Long fileLength;
-
-        /**
-         * 通过本地备份文件初始化
-         *
-         * @param file 本地备份文件
-         */
-        public BackupFile(File file) {
-            build(FileUtil.getPrefix(file.getName()));
-            this.file = file;
-            this.fileLength = file.length();
-        }
-
-        /**
-         * 指定用户的开始备份
-         *
-         * @param userId 用户ID
-         */
-        public BackupFile(Long userId, BackupTypeEnum type, YesNo toLocal) {
-            String filename = String.format("%s_%s_%s", buildFilePrefix(type, toLocal), userId, DateUtils.toYMDHMS_SSS(System.currentTimeMillis()));
-            filename = filename.replaceAll(" ", SEPARATOR)
-                    .replaceAll("-", "")
-                    .replaceAll(":", "")
-                    .replaceAll("\\.", SEPARATOR);
-            build(filename);
-        }
-
-        private static String buildFilePrefix(BackupTypeEnum type, YesNo toLocal) {
-            String prefix = "B";
-            if (type == BackupTypeEnum.MARKDOWN) {
-                prefix += "M";
-            } else if (type == BackupTypeEnum.HTML) {
-                prefix += "H";
-            }
-
-            if (toLocal == YesNo.YES) {
-                prefix += "L";
-            } else if (toLocal == YesNo.NO) {
-                prefix += "N";
-            }
-
-            return prefix;
-        }
-
-        private void build(String filename) {
-            this.filename = filename;
-            String[] tags = filename.split(SEPARATOR);
-            if (tags.length < 5) {
-                return;
-            }
-            this.userId = tags[1];
-            this.date = tags[2];
-            this.time = tags[3];
-            this.datetime = DateUtil.parse(this.date + this.time);
-        }
-
-        /**
-         * 获取备份文件的路径, 由备份路径 + 本次备份名称构成
-         */
-        public String getRootPath() {
-            return this.path + "/" + this.filename;
-        }
-
-    }
-
 }

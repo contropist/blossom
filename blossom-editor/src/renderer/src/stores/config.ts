@@ -16,16 +16,40 @@ export interface ViewStyle {
   todoStatExpand: boolean
   // 展开收起首页网页收藏
   webCollectExpand: boolean
+  // 是否显示文件夹收藏图标
+  isShowFolderStarTag: boolean
   // 是否显示专题样式
   isShowSubjectStyle: boolean
-  // 是否在首页显示收藏卡片
+  // 是否以卡片方式显示文章收藏
   isHomeStarCard: boolean
-  // 是否在首页显示专题卡片
+  // 是否以卡片方式显示专题
   isHomeSubjectCard: boolean
+  // 是否以卡片方式显示网页收藏
+  isWebCollectCard: boolean
   // 是否开启全局阴影, 在 ThemeSetting.vue#changeGlobalShadow 中设置
   isGlobalShadow: boolean
   // 是否显示试用按钮
   isShowTryuseBtn: boolean
+  // 只展开一项子菜单
+  isMenuUniqueOpened: boolean
+  // 点击登录后自动进入首页
+  isLoginToHomePage: boolean
+  // 显示公开收藏等状态标识
+  isShowArticleType: boolean
+  // 显示文章图标
+  isShowArticleIcon: boolean
+  // 显示专题目录标签
+  isShowArticleTocTag: boolean
+  // 显示自定义标签
+  isShowArticleCustomTag: boolean
+  // 显示公开文件夹标签
+  isShowFolderOpenTag: boolean
+  // 显示左下角上传入口
+  isShowAsideUpload: boolean
+  // 显示左上角 LOGO
+  isShowAsideLogo: boolean
+  // 显示简易左侧菜单
+  isShowAsideSimple: boolean
 }
 
 /**
@@ -99,11 +123,23 @@ export const useConfigStore = defineStore('configStore', {
         treeDocsFontSize: '13px',
         todoStatExpand: true,
         webCollectExpand: true,
-        isShowSubjectStyle: true,
+        isShowFolderStarTag: true,
+        isShowSubjectStyle: false,
         isHomeStarCard: true,
-        isHomeSubjectCard: true,
-        isGlobalShadow: true,
-        isShowTryuseBtn: true
+        isHomeSubjectCard: false,
+        isWebCollectCard: true,
+        isGlobalShadow: false,
+        isShowTryuseBtn: true,
+        isMenuUniqueOpened: true,
+        isLoginToHomePage: false,
+        isShowArticleType: true,
+        isShowArticleIcon: true,
+        isShowArticleTocTag: true,
+        isShowArticleCustomTag: true,
+        isShowFolderOpenTag: true,
+        isShowAsideUpload: true,
+        isShowAsideLogo: true,
+        isShowAsideSimple: false
       },
       ...Local.get(VIEW_STYLE_KEY)
     },

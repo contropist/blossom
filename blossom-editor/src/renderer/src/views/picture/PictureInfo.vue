@@ -50,7 +50,7 @@
           <el-form-item label="上级菜单">
             <el-tree-select
               v-model="docForm.pid"
-              style="--el-form-inline-content-width: 432px"
+              style="width: 432px"
               :data="docTreeData"
               node-key="i"
               :props="{ label: 'n', disabled: checkSelectTreeIsDisabled }"
@@ -142,7 +142,7 @@ import { ref, nextTick, inject, computed, watch, Ref } from 'vue'
 import { ElInput } from 'element-plus'
 import type { FormRules } from 'element-plus'
 import { Document } from '@element-plus/icons-vue'
-import { checkLevel, getCDocsByPid, provideKeyDocTree, getDocById } from '@renderer/views/doc/doc'
+import { getCDocsByPid, provideKeyDocTree, getDocById } from '@renderer/views/doc/doc'
 import { useUserStore } from '@renderer/stores/user'
 import { folderInfoApi, folderAddApi, folderUpdApi } from '@renderer/api/blossom'
 import { isNotBlank } from '@renderer/assets/utils/obj'
@@ -272,14 +272,10 @@ const fillStorePath = (id: string, path: string = ''): void => {
 const saveLoading = ref<boolean>(false)
 const saveDoc = () => {
   saveLoading.value = true
-  if (!checkLevel(docForm.value.pid, docTreeData!.value)) {
-    saveLoading.value = false
-    return
-  }
   // then 回调
   const handleResp = (_: any) => {
     Notify.success(curDocDialogType === 'upd' ? `修改《${docForm.value.name}》成功` : `新增《${docForm.value.name}》成功`)
-    emits('saved')
+    emits('saved', curDocDialogType, docForm.value)
   }
   const handleFinally = () => setTimeout(() => (saveLoading.value = false), 300)
   if (curDocDialogType == 'add')

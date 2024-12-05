@@ -8,31 +8,34 @@
 
     <div class="content">
       <div class="workbench">
-        <el-button @click="getBackupList"> <span class="iconbl bl-refresh-line" style="margin-right: 7px"></span>刷新 </el-button>
-        <el-tooltip content="将文章以 Markdown 格式进行备份" :hide-after="0">
-          <el-button @click="backupNow('MARKDOWN', 'NO')">
-            <span class="iconbl bl-file-markdown" style="margin-right: 7px"></span>备份 Markdown
-          </el-button>
-        </el-tooltip>
-        <el-tooltip content="将文章以 Markdown 格式进行备份，同时备份所有图片" :hide-after="0">
-          <el-button @click="backupNow('MARKDOWN', 'YES')">
-            <span class="iconbl bl-file-markdown" style="margin-right: 7px"></span>备份本地 Markdown
-          </el-button>
-        </el-tooltip>
+        <bl-row just="space-between">
+          <div>
+            <el-tooltip content="将文章以 Markdown 格式进行备份" :hide-after="0">
+              <el-button @click="backupNow('MARKDOWN', 'NO')">
+                <span class="iconbl bl-file-markdown" style="margin-right: 7px"></span>备份 Markdown
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="将文章以 Markdown 格式进行备份，同时备份所有图片" :hide-after="0">
+              <el-button @click="backupNow('MARKDOWN', 'YES')">
+                <span class="iconbl bl-file-markdown" style="margin-right: 7px"></span>备份本地 Markdown
+              </el-button>
+            </el-tooltip>
 
-        <el-tooltip content="将文章以 Html 格式进行备份" :hide-after="0">
-          <el-button @click="backupNow('HTML', 'NO')"> <span class="iconbl bl-HTML" style="margin-right: 7px"></span>备份 Html </el-button>
-        </el-tooltip>
+            <el-tooltip content="将文章以 Html 格式进行备份" :hide-after="0">
+              <el-button @click="backupNow('HTML', 'NO')"> <span class="iconbl bl-HTML" style="margin-right: 7px"></span>备份 Html </el-button>
+            </el-tooltip>
 
-        <el-tooltip content="将文章以 Html 格式进行备份，同时备份所有图片" :hide-after="0">
-          <el-button @click="backupNow('HTML', 'YES')"> <span class="iconbl bl-HTML" style="margin-right: 7px"></span>备份本地 Html </el-button>
-        </el-tooltip>
-        <el-button @click="cancelDownload" type="danger" plain>
-          <span class="iconbl bl-a-closeline-line" style="margin-right: 7px"></span>取消下载
-        </el-button>
+            <el-tooltip content="将文章以 Html 格式进行备份，同时备份所有图片" :hide-after="0">
+              <el-button @click="backupNow('HTML', 'YES')"> <span class="iconbl bl-HTML" style="margin-right: 7px"></span>备份本地 Html </el-button>
+            </el-tooltip>
+            <el-button @click="cancelDownload" type="danger" plain>
+              <span class="iconbl bl-a-closeline-line" style="margin-right: 7px"></span>取消下载
+            </el-button>
+          </div>
+          <el-button @click="getBackupList" text> <span class="iconbl bl-refresh-line"></span></el-button>
+        </bl-row>
         <div class="tips">服务器将于每日早上 7 点备份 Markdown 数据。</div>
         <div class="download-process">
-          <!-- 当前仅支持下载最大 10MB 的文件, 过大时请您自行从服务器中下载。若您的服务器带宽较小，也建议您自行从服务器下载。 -->
           <el-progress :text-inside="true" :stroke-width="20" :percentage="downloadProgress" striped striped-flow :duration="200" />
         </div>
       </div>
@@ -188,7 +191,7 @@ const cancelDownload = async () => {
       @include flex(column, flex-start, flex-start);
       align-content: flex-start;
       flex-wrap: wrap;
-      overflow-x: overlay;
+      overflow-x: scroll;
       padding: 10px;
 
       .bak-item {

@@ -189,7 +189,7 @@ INSERT INTO base_sys_param (id, param_name, param_value, param_desc, open_state,
 SELECT *
 FROM (select 101                             as id,
              'BLOSSOM_OBJECT_STORAGE_DOMAIN' as param_name,
-             'http://www.xxx.com/'           as param_value,
+             'http://www.google.com/'           as param_value,
              'BLOSSOM 对象存储地址'                as param_desc,
              1                               as open_state,
              CURRENT_TIMESTAMP               as cre_time,
@@ -387,7 +387,7 @@ CREATE TABLE IF NOT EXISTS `blossom_article_reference`
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 100000
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_bin
+  COLLATE = utf8mb4_bin COMMENT = '文章引用'
   ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -421,6 +421,11 @@ CREATE TABLE IF NOT EXISTS `blossom_article_view`
   COLLATE = utf8mb4_bin
   ROW_FORMAT = DYNAMIC COMMENT ='文章访问记录，ArticleView';
 
+-- ----------------------------
+-- since: 1.16.0
+-- ----------------------------
+alter table blossom_article_view
+    modify ip varchar(51) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL comment '地址,IPV4/IPV6';
 -- ----------------------------
 -- Records of blossom_article_view
 -- ----------------------------
@@ -478,7 +483,7 @@ CREATE TABLE IF NOT EXISTS `blossom_note`
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 18
   CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_bin
+  COLLATE = utf8mb4_bin COMMENT = '便签，Note'
   ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -559,7 +564,7 @@ CREATE TABLE IF NOT EXISTS `blossom_stat`
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 218
   CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_bin
+  COLLATE = utf8mb4_bin COMMENT = '统计信息'
   ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -584,7 +589,7 @@ CREATE TABLE IF NOT EXISTS `blossom_web`
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 292
   CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_bin COMMENT = '[FS] 网站收藏'
+  COLLATE = utf8mb4_bin COMMENT = '网站收藏'
   ROW_FORMAT = DYNAMIC;
 
 alter table blossom_web
@@ -637,5 +642,11 @@ CREATE TABLE IF NOT EXISTS `base_user_param`
     PRIMARY KEY (`id`),
     UNIQUE KEY `unq_bup_userid_paramname` (`user_id`, `param_name`) COMMENT '用户参数唯一'
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
+  DEFAULT CHARSET = utf8mb4 COMMENT = '用户参数'
   COLLATE = utf8mb4_bin;
+
+-- Code that might be wrong goes last
+-- since 1.14.0
+alter table blossom_folder add column star_status tinyint(1) NOT NULL DEFAULT 0 COMMENT '收藏 0:否,1:是';
+-- since 1.15.0
+alter table blossom_article add column upd_markdown_time datetime COMMENT '文章内容的修改时间';

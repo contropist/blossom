@@ -61,6 +61,8 @@
   }
 
   .tag-select {
+    width: 150px;
+
     :deep(.el-tag--small) {
       @include themeColor(#fff, #000);
       background-color: var(--el-color-primary-light-3);
@@ -104,8 +106,8 @@
   }
 
   .add-icon {
-    @include font(13px, 300);
-    padding-right: 3px;
+    @include font(16px, 300);
+    padding: 0 3px;
     color: var(--bl-text-color-light);
     cursor: pointer;
 
@@ -124,7 +126,7 @@
     padding: 0 10px;
 
     .tasks-title {
-      @include flex(row, space-between, center);
+      @include flex(row, space-between, flex-end);
       @include box(270px, 30px);
       @include font(28px, 700);
       text-shadow: var(--bl-text-shadow);
@@ -143,7 +145,7 @@
       @include box(100%, calc(100% - 60px));
       @include flex(column, flex-start, center);
       position: relative;
-      overflow-y: overlay;
+      overflow-y: scroll;
       padding: 20px 0;
 
       .drag-container {
@@ -169,10 +171,10 @@
         border: 3px solid var(--el-color-primary);
 
         .iconbl {
+          @include themeColor(#e4e4e4, #2c2c2c);
           display: inherit;
           margin-top: 40px;
           font-size: 90px;
-          color: #e4e4e4;
         }
       }
     }

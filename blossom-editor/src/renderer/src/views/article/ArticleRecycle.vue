@@ -7,10 +7,12 @@
     </div>
 
     <div class="content">
-      <bl-row class="workbench">
-        <el-button @click="getBackupList"> <span class="iconbl bl-refresh-line" style="margin-right: 7px"></span>刷新</el-button>
-        <el-input style="width: 150px; margin-left: 10px" placeholder="搜索文章名" v-model="recycleSearch"></el-input>
-        <div class="tips">回收站只保存 {{ userinfo.params.ARTICLE_RECYCLE_EXP_DAYS }} 天内的文章。</div>
+      <bl-row class="workbench" just="space-between">
+        <div style="width: auto">
+          <el-input style="width: 150px; margin-left: 10px" placeholder="搜索文章名" v-model="recycleSearch"></el-input>
+          <span class="tips">回收站只保存 {{ userinfo.params.ARTICLE_RECYCLE_EXP_DAYS }} 天内的文章。</span>
+        </div>
+        <el-button @click="getBackupList" text> <span class="iconbl bl-refresh-line"></span></el-button>
       </bl-row>
 
       <div class="recycle-container">
@@ -19,7 +21,7 @@
           <div class="name">{{ recycle.name }}</div>
           <div class="size">{{ recycle.delTime }}|{{ remainingDays(recycle.delTime) }}天后删除</div>
           <el-button class="restore-btn" @click="restore(recycle.id)"><span class="iconbl bl-a-cloudupload-line"></span></el-button>
-          <el-button class="download-btn" @click=""><span class="iconbl bl-folder-download-line"></span></el-button>
+          <el-button class="download-btn" @click="download(recycle.id)"><span class="iconbl bl-folder-download-line"></span></el-button>
         </div>
       </div>
     </div>
@@ -29,7 +31,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useUserStore } from '@renderer/stores/user'
-import { articleRecycleListApi, articleRecycleRestoreApi } from '@renderer/api/blossom'
+import { articleRecycleListApi, articleRecycleRestoreApi, articleRecycleDownloadApi } from '@renderer/api/blossom'
 import { isNull } from '@renderer/assets/utils/obj'
 import { isEmpty } from 'lodash'
 import dayjs from 'dayjs'
@@ -68,6 +70,26 @@ const restore = (id: string) => {
     getBackupList()
   })
 }
+
+const download = (id: string) => {
+  articleRecycleDownloadApi({ id: id }).then((resp) => {
+    let filename: string = resp.headers.get('content-disposition')
+    let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+    let matches = filenameRegex.exec(filename)
+    if (matches != null && matches[1]) {
+      filename = decodeURI(matches[1].replace(/['"]/g, ''))
+    }
+    filename = decodeURI(filename)
+    let a = document.createElement('a')
+    let blob = new Blob([resp.data], { type: 'text/plain' })
+    let objectUrl = URL.createObjectURL(blob)
+    a.setAttribute('href', objectUrl)
+    a.setAttribute('download', filename)
+    a.click()
+    URL.revokeObjectURL(a.href)
+    a.remove()
+  })
+}
 </script>
 
 <style scoped lang="scss">
@@ -89,7 +111,7 @@ const restore = (id: string) => {
       @include flex(column, flex-start, flex-start);
       align-content: flex-start;
       flex-wrap: wrap;
-      overflow-x: overlay;
+      overflow-x: scroll;
       padding: 10px;
 
       .recycle-item {

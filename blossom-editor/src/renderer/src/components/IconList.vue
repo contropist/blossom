@@ -1,4 +1,7 @@
 <template>
+  <div class="header">
+    <AppHeader v-if="props.window" simple></AppHeader>
+  </div>
   <div class="icon-list-root">
     <div class="icon-desc">
       <h2>Blossom 图标</h2>
@@ -30,14 +33,6 @@
           </div>
         </div>
       </el-tab-pane>
-      <!-- <el-tab-pane label="系统图片" name="sysimg">
-        <div class="icon-container">
-          <div v-for="img in imgs" class="icon-item" :key="img.icon_id">
-            <img style="width: 40px; height: 40px; object-fit: contain" :src="img" />
-            <div class="icon-name">{{ img.substring(img.lastIndexOf('/') + 1) }}</div>
-          </div>
-        </div>
-      </el-tab-pane> -->
     </el-tabs>
   </div>
 </template>
@@ -45,70 +40,31 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import { ElMessage } from 'element-plus'
-import blossomIcons from '@renderer/assets/iconfont/blossom/iconfont.json'
-import weblogIcons from '@renderer/assets/iconfont/weblogo/iconfont.json'
 import { isNull } from '@renderer/assets/utils/obj'
 import { writeText } from '@renderer/assets/utils/electron'
+import AppHeader from '@renderer/components/AppHeader.vue'
+//
+import blossomIcons from '@renderer/assets/iconfont/blossom/iconfont.json'
+import weblogIcons from '@renderer/assets/iconfont/weblogo/iconfont.json'
 
 onMounted(() => {
+  document.title = 'Blossom 图标库'
   blossom.value = blossomIcons.glyphs
   weblogo.value = weblogIcons.glyphs.sort((w1, w2) => {
     return w1.font_class.localeCompare(w2.font_class)
   })
 })
 
-// const getImg = (img: string) => {
-//   return new URL(`../assets/imgs/${img}`, import.meta.url).href
-// }
+const props = defineProps({
+  window: {
+    type: Boolean,
+    default: true
+  }
+})
 
 const activeTab = ref('weblogo')
-
 const blossom = shallowRef<any[]>([])
 const weblogo = shallowRef<any[]>([])
-// const imgs = shallowRef<any[]>([
-//   getImg('plan/base-awesome.png'),
-//   getImg('plan/base-cool.png'),
-//   getImg('plan/base-learning.png'),
-//   getImg('plan/cat-kiss.png'),
-//   getImg('plan/cat-nice.png'),
-//   getImg('plan/cat-smile.png'),
-//   getImg('plan/cat.png'),
-//   getImg('plan/coffee.png'),
-//   getImg('plan/juice.png'),
-//   getImg('plan/beer.png'),
-//   // note
-//   getImg('note/cd.png'),
-//   getImg('note/dustbin.png'),
-//   getImg('note/note.png'),
-//   getImg('note/pin.png'),
-//   getImg('note/plane.png'),
-//   // pe
-//   getImg('pe/headset.png'),
-//   getImg('pe/phone.png'),
-//   getImg('pe/sound.png'),
-//   getImg('pe/watch.png'),
-//   // plant
-//   getImg('plant/02.png'),
-//   getImg('plant/08.png'),
-//   getImg('plant/cactus.png'),
-//   // weather
-//   getImg('weather/feng-s.png'),
-//   getImg('weather/feng.png'),
-//   getImg('weather/qing-s.png'),
-//   getImg('weather/qing.png'),
-//   getImg('weather/qing-moon.png'),
-//   getImg('weather/wu-s.png'),
-//   getImg('weather/wu.png'),
-//   getImg('weather/xue-s.png'),
-//   getImg('weather/xue.png'),
-//   getImg('weather/yin-s.png'),
-//   getImg('weather/yin.png'),
-//   getImg('weather/yu-s.png'),
-//   getImg('weather/yu.png'),
-//   getImg('weather/zhongyu-s.png'),
-//   getImg('weather/zhongyu.png')
-// ])
-
 const iconSearch = ref('')
 
 const filterWebLogo = computed(() => {
@@ -147,8 +103,12 @@ const copyIcon = (icon: string) => {
 </script>
 
 <style lang="scss">
+.header {
+  @include box(100%, 30px);
+}
+
 .icon-list-root {
-  @include box(100%, 100%);
+  @include box(100%, calc(100% - 30px));
   padding: 20px;
   color: var(--bl-text-color-light);
 
@@ -166,16 +126,13 @@ const copyIcon = (icon: string) => {
       align-content: flex-start;
       flex-wrap: wrap;
       background-color: var(--bl-html-color);
-      overflow: scroll;
-      overflow-y: overlay;
+      overflow-y: scroll;
 
       .icon-item {
         @include flex(column, space-between, center);
         @include box(143px, 110px);
         padding: 15px 10px 10px 10px;
         font-size: 35px;
-        // border-top:  1px solid var(--el-border-color);
-        // border-left:  1px solid var(--el-border-color);
         border-right: 1px solid var(--el-border-color);
         border-bottom: 1px solid var(--el-border-color);
         transition: 0.3s;

@@ -2,12 +2,12 @@
   <div class="todo-root">
     <div class="todo-aside">
       <div class="setting doc-workbench-root">
-        <div class="iconbl bl-a-cloudrefresh-line" @click="getTodos()"></div>
+        <div class="iconbl bl-refresh-line" @click="getTodos()"></div>
       </div>
       <div class="task-collapse">
         <el-collapse v-model="activeName" accordion>
           <el-collapse-item title="每日待办事项" name="1" class="collapse-item">
-            <el-calendar ref="CalendarRef" class="task-day-calendar" v-model="selectDay">
+            <el-calendar ref="CalendarRef" class="task-day-calendar">
               <template #header="{ date }">
                 <bl-row just="space-between" class="header" style="margin: 8px 10px">
                   <div class="month">{{ date.split(' ')[2] }}{{ date.split(' ')[3] }}</div>
@@ -21,7 +21,7 @@
               <template #date-cell="{ data }">
                 <div class="cell-wrapper" @click="toTask(data.day, data.day, 10)">
                   <div class="day">{{ data.day.split('-')[2] }}</div>
-                  <div v-if="getCount(data.day) > 0">
+                  <div v-if="getCount(data.day) != 0">
                     <bl-tag>{{ getCount(data.day) }}</bl-tag>
                   </div>
                 </div>
@@ -29,36 +29,35 @@
             </el-calendar>
           </el-collapse-item>
 
-          <!--  -->
           <el-collapse-item title="阶段性事项" name="2">
             <div v-for="phased in todoPhased" class="task-phased" @click="toTask(phased.todoId, phased.todoName, phased.todoType)">
-              <!-- update name -->
               <el-input
                 v-if="phased.updTodoName"
-                :id="'phased-name-input-' + phased.todoId"
                 v-model="phased.todoName"
                 type="textarea"
+                :id="'phased-name-input-' + phased.todoId"
                 :rows="3"
                 @blur="blurPhasedUpdHandle(phased.todoId!)"></el-input>
-              <div v-else @dblclick="showPhasedUpdHandle(phased.todoId!)">{{ phased.todoName }}</div>
-              <bl-tag v-if="phased.taskCount > 0">{{ phased.taskCount }}</bl-tag>
+
+              <div v-else class="phase-name" @dblclick="showPhasedUpdHandle(phased.todoId!)">
+                {{ phased.todoName }}
+              </div>
+              <div class="phased-stat">{{ phased.taskCountStat }}</div>
             </div>
 
-            <!-- add phased -->
             <el-input
               v-if="showPhasedAdd"
               ref="phasedAddInputRef"
               v-model="phasedAddName"
-              @blur="blurPhasedAddHandle"
-              style="margin-top: 10px"></el-input>
+              @keyup.enter="blurPhasedAddHandle"
+              @blur="blurPhasedAddHandle"></el-input>
             <div v-else class="task-phased-add" @click="showPhasedAddHandle">新增计划</div>
           </el-collapse-item>
 
-          <!--  -->
           <el-collapse-item title="阶段性事项 已完成" name="3">
             <div v-for="phased in todoPhasedClose" class="task-phased" @click="toTask(phased.todoId, phased.todoName, phased.todoType)">
-              {{ phased.todoName }}
-              <bl-tag v-if="phased.taskCount > 0">{{ phased.taskCount }}</bl-tag>
+              <div class="phased-stat">{{ phased.taskCountStat }}</div>
+              <div class="phase-name">{{ phased.todoName }}</div>
             </div>
           </el-collapse-item>
         </el-collapse>
@@ -101,8 +100,6 @@ useLifecycle(
 )
 
 //#region ----------------------------------------< 日历 >--------------------------------------
-
-const selectDay = ref()
 const CalendarRef = ref<CalendarInstance>()
 const selectDate = (val: CalendarDateType) => {
   if (!CalendarRef.value) return
@@ -115,6 +112,7 @@ const selectDate = (val: CalendarDateType) => {
 const TaskProgressRef = ref()
 const TodoStatRef = ref()
 const activeName = ref('1')
+// key:日期; value:当日的待办统计
 const todoDayMaps = ref<Map<string, TodoList>>(new Map())
 const getTodos = () => {
   todosApi().then((resp) => {
@@ -128,6 +126,7 @@ const getTodos = () => {
         todoType: 10,
         today: false,
         taskCount: todo.taskCount > 0 ? todo.taskCount : 0,
+        taskCountStat: '0|0|0',
         updTodoName: false
       })
     }
@@ -136,9 +135,17 @@ const getTodos = () => {
   })
 }
 
+/**
+ * @todo 日历每一项点击时由于内部数据变更, 都会触发查询
+ * @param day
+ */
 const getCount = (day: string): number => {
-  if (!todoDayMaps.value) return 0
-  if (!todoDayMaps.value.get(day)) return 0
+  if (!todoDayMaps.value) {
+    return 0
+  }
+  if (!todoDayMaps.value.has(day)) {
+    return 0
+  }
   return todoDayMaps.value.get(day)!.taskCount
 }
 
@@ -261,8 +268,9 @@ const blurPhasedUpdHandle = (todoId: string) => {
             inset -1px 3px 5px #dfdfdf,
             inset -1px -3px 5px #dfdfdf;
           height: calc(100% - #{$item-height});
-          overflow-y: auto;
-          padding: 0 10px 0 20px;
+          padding: 0 5px 0 15px;
+          overflow-x: hidden;
+          overflow-y: scroll;
 
           [class='dark'] & {
             box-shadow:
@@ -280,6 +288,8 @@ const blurPhasedUpdHandle = (todoId: string) => {
 
     .task-day-calendar {
       background-color: transparent;
+      --el-calendar-selected-bg-color: var(--el-color-primary-light-8);
+
       :deep(.el-calendar__header) {
         padding: 0;
       }
@@ -308,35 +318,69 @@ const blurPhasedUpdHandle = (todoId: string) => {
               border-right: none;
             }
           }
+
+          .is-today {
+            .el-calendar-day {
+              .cell-wrapper {
+                .day {
+                  font-weight: 900;
+                  text-decoration: underline;
+                }
+              }
+            }
+          }
         }
       }
     }
 
-    .task-day,
     .task-phased {
-      @include flex(row, flex-start, center);
+      @include box(220px, auto);
+      @include flex(row, flex-start, flex-start);
       @include font(13px, 300);
-      padding: 1px 3px;
-      border-radius: 4px;
+      border: 1px solid var(--el-border-color);
+      min-height: 40px;
+      flex-wrap: wrap;
+      padding: 3px 5px;
+      margin-bottom: 10px;
       color: var(--bl-text-color);
+      border-radius: 3px;
+      position: relative;
+      overflow: hidden;
+      transition:
+        box-shadow 0.3s,
+        border-color 0.3s;
       cursor: pointer;
 
       &:hover {
-        background-color: var(--el-color-info-light-9);
+        @include themeShadow(0 0 9px #c0c0c0, 0 0 10px #000000);
+        border-color: var(--el-color-primary);
+
+        .phased-stat {
+          background-color: var(--el-color-primary-light-8);
+        }
       }
 
       &:first-child {
-        margin-top: 5px;
+        margin-top: 15px;
       }
 
-      &:last-child {
-        margin-bottom: 5px;
+      .phase-name {
+        line-height: 14px;
+        word-break: break-all;
       }
-    }
 
-    .task-phased {
-      padding: 5px 3px;
-      @include flex(row, flex-start, flex-start);
+      .phased-stat {
+        font-size: 11px;
+        line-height: 15px;
+        padding: 2px 10px 0 10px;
+        color: var(--bl-text-color-light);
+        background-color: var(--bl-bg-color);
+        border-top-left-radius: 3px;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        transition: background-color 0.1s;
+      }
 
       .task-count {
         padding: 0 5px;
@@ -345,11 +389,12 @@ const blurPhasedUpdHandle = (todoId: string) => {
     }
 
     .task-phased-add {
-      @include themeBorder(1px, #b4b4b4, #515151, 'around', 6px, dashed);
+      @include themeBorder(1px, #b4b4b4, #515151, 'around', 3px, dashed);
+      width: 220px;
       padding: 1px 5px;
       margin: 10px 0;
       color: var(--bl-text-color-light);
-      transition: 0.3s;
+      transition: box-shadow 0.3s;
       text-align: center;
       cursor: pointer;
 

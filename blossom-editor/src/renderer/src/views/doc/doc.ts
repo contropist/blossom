@@ -1,4 +1,4 @@
-import Notify from '@renderer/scripts/notify'
+import { isNull } from '@renderer/assets/utils/obj'
 import { isEmpty } from 'lodash'
 import { Ref } from 'vue'
 import type { InjectionKey } from 'vue'
@@ -37,6 +37,21 @@ export enum SortLevelColor {
 }
 
 /**
+ * 判断文档是否是文章
+ * @param doc
+ * @returns true: 是文章; false: 不是文章
+ */
+export const isArticle = (doc: DocInfo | undefined): boolean => {
+  if (isNull(doc)) {
+    return false
+  }
+  if (isNull(doc!.type) || doc!.type != 3) {
+    return false
+  }
+  return true
+}
+
+/**
  * 通过标题等级计算颜色
  * @param level 标题等级
  * @returns
@@ -59,13 +74,9 @@ export const computedDocTitleColor = (level: number) => {
  * @param pid   上级ID
  * @param trees 树状列表
  * @returns
+ * @deprecated 1.14.0 支持无限菜单后不需要控制层级
  */
-export const checkLevel = (pid: string, trees: DocTree[]): boolean => {
-  let parents = getPDocsByPid(pid, trees)
-  if (parents.length >= 4) {
-    Notify.error('最多仅支持4级层级关系', '菜单层级错误')
-    return false
-  }
+export const checkLevel = (_pid: string, _trees: DocTree[]): boolean => {
   return true
 }
 

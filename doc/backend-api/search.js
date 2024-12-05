@@ -27,41 +27,91 @@ api[0].list[0].list.push({
 api[0].list[0].list.push({
     order: '3',
     deprecated: 'false',
+    url: 'http://127.0.0.1/kickout',
+    desc: '踢出用户',
+});
+api[0].list[0].list.push({
+    order: '4',
+    deprecated: 'false',
     url: 'http://127.0.0.1/check',
     desc: '检查 Token 状态',
 });
 api[0].list.push({
-    alias: 'SysController',
+    alias: 'UserParamController',
     order: '2',
-    link: '系统功能_[sys]',
-    desc: '系统功能 [Sys]',
+    link: '用户参数配置',
+    desc: '用户参数配置',
     list: []
 })
 api[0].list[1].list.push({
     order: '1',
     deprecated: 'false',
+    url: 'http://127.0.0.1/user/param/list',
+    desc: '用户参数列表',
+});
+api[0].list[1].list.push({
+    order: '2',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/user/param/upd',
+    desc: '修改用户参数',
+});
+api[0].list[1].list.push({
+    order: '3',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/user/param/upd/admin',
+    desc: '修改用户参数',
+});
+api[0].list[1].list.push({
+    order: '4',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/user/param/refresh',
+    desc: '刷新用户配置',
+});
+api[0].list.push({
+    alias: 'SearchController',
+    order: '3',
+    link: '搜索接口',
+    desc: '搜索接口',
+    list: []
+})
+api[0].list[2].list.push({
+    order: '1',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/search',
+    desc: '搜索',
+});
+api[0].list.push({
+    alias: 'SysController',
+    order: '4',
+    link: '系统功能_[sys]',
+    desc: '系统功能 [Sys]',
+    list: []
+})
+api[0].list[3].list.push({
+    order: '1',
+    deprecated: 'false',
     url: 'http://127.0.0.1/sys/alive',
     desc: '服务在线检查 [OP]',
 });
-api[0].list[1].list.push({
+api[0].list[3].list.push({
     order: '2',
     deprecated: 'false',
     url: 'http://127.0.0.1/sys/osconfig',
     desc: '对象存储配置',
 });
-api[0].list[1].list.push({
+api[0].list[3].list.push({
     order: '3',
     deprecated: 'false',
     url: 'http://127.0.0.1/sys/param/list',
     desc: '系统参数列表',
 });
-api[0].list[1].list.push({
+api[0].list[3].list.push({
     order: '4',
     deprecated: 'false',
     url: 'http://127.0.0.1/sys/param/upd',
     desc: '修改系统参数',
 });
-api[0].list[1].list.push({
+api[0].list[3].list.push({
     order: '5',
     deprecated: 'false',
     url: 'http://127.0.0.1/sys/param/refresh',
@@ -69,40 +119,70 @@ api[0].list[1].list.push({
 });
 api[0].list.push({
     alias: 'UserController',
-    order: '3',
+    order: '5',
     link: '用户_[user]',
     desc: '用户 [User]',
     list: []
 })
-api[0].list[2].list.push({
+api[0].list[4].list.push({
     order: '1',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/user/list',
+    desc: '获取用户列表',
+});
+api[0].list[4].list.push({
+    order: '2',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/user/info/admin',
+    desc: '用户信息',
+});
+api[0].list[4].list.push({
+    order: '3',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/user/add',
+    desc: '新增用户',
+});
+api[0].list[4].list.push({
+    order: '4',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/user/upd/admin',
+    desc: '修改用户',
+});
+api[0].list[4].list.push({
+    order: '5',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/user/disabled',
+    desc: '禁用启用',
+});
+api[0].list[4].list.push({
+    order: '6',
     deprecated: 'false',
     url: 'http://127.0.0.1/user/info',
     desc: '用户信息',
 });
-api[0].list[2].list.push({
-    order: '2',
+api[0].list[4].list.push({
+    order: '7',
     deprecated: 'false',
     url: 'http://127.0.0.1/user/info/open',
     desc: '用户信息 [OP]',
 });
-api[0].list[2].list.push({
-    order: '3',
+api[0].list[4].list.push({
+    order: '8',
     deprecated: 'false',
     url: 'http://127.0.0.1/user/upd',
     desc: '修改用户',
 });
-api[0].list[2].list.push({
-    order: '4',
+api[0].list[4].list.push({
+    order: '9',
     deprecated: 'false',
     url: 'http://127.0.0.1/user/upd/pwd',
     desc: '修改密码',
 });
-api[0].list[2].list.push({
-    order: '5',
+api[0].list[4].list.push({
+    order: '10',
     deprecated: 'false',
-    url: 'http://127.0.0.1/user/add',
-    desc: '新增用户',
+    url: 'http://127.0.0.1/user/del',
+    desc: '删除用户',
 });
 api.push({
     name: '业务功能',
@@ -128,6 +208,12 @@ api[1].list[0].list.push({
     url: 'http://127.0.0.1/doc/trees/open',
     desc: '文档列表 [OP]',
 });
+api[1].list[0].list.push({
+    order: '3',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/doc/upd/sort',
+    desc: '修改排序',
+});
 api[1].list.push({
     alias: 'FolderController',
     order: '2',
@@ -150,41 +236,47 @@ api[1].list[1].list.push({
 api[1].list[1].list.push({
     order: '3',
     deprecated: 'false',
+    url: 'http://127.0.0.1/folder/star',
+    desc: '星标文件夹',
+});
+api[1].list[1].list.push({
+    order: '4',
+    deprecated: 'false',
     url: 'http://127.0.0.1/folder/info',
     desc: '通过ID查询文件夹',
 });
 api[1].list[1].list.push({
-    order: '4',
+    order: '5',
     deprecated: 'false',
     url: 'http://127.0.0.1/folder/add',
     desc: '新增或修改文件夹',
 });
 api[1].list[1].list.push({
-    order: '5',
+    order: '6',
     deprecated: 'false',
     url: 'http://127.0.0.1/folder/upd',
     desc: '修改文件夹',
 });
 api[1].list[1].list.push({
-    order: '6',
+    order: '7',
     deprecated: 'false',
     url: 'http://127.0.0.1/folder/upd/name',
     desc: '修改文件夹',
 });
 api[1].list[1].list.push({
-    order: '7',
+    order: '8',
     deprecated: 'false',
     url: 'http://127.0.0.1/folder/upd/tag',
-    desc: '为文件夹快速增加/删除标签',
+    desc: '快速增加/删除标签',
 });
 api[1].list[1].list.push({
-    order: '8',
+    order: '9',
     deprecated: 'false',
     url: 'http://127.0.0.1/folder/open',
     desc: '公开文件夹',
 });
 api[1].list[1].list.push({
-    order: '9',
+    order: '10',
     deprecated: 'false',
     url: 'http://127.0.0.1/folder/del',
     desc: '删除文件夹',
@@ -236,7 +328,7 @@ api[1].list[2].list.push({
     order: '7',
     deprecated: 'false',
     url: 'http://127.0.0.1/article/upd/tag',
-    desc: '为文章快速增加/删除标签',
+    desc: '快速增加/删除标签',
 });
 api[1].list[2].list.push({
     order: '8',
@@ -302,11 +394,17 @@ api[1].list[3].list.push({
 api[1].list[3].list.push({
     order: '3',
     deprecated: 'false',
+    url: 'http://127.0.0.1/article/open/batch',
+    desc: '批量公开文章',
+});
+api[1].list[3].list.push({
+    order: '4',
+    deprecated: 'false',
     url: 'http://127.0.0.1/article/open/sync',
     desc: '同步公开文章',
 });
 api[1].list[3].list.push({
-    order: '4',
+    order: '5',
     deprecated: 'false',
     url: 'http://127.0.0.1/article/open/qrcode',
     desc: '生成公开文章二维码',
@@ -362,6 +460,12 @@ api[1].list[6].list.push({
     url: 'http://127.0.0.1/article/recycle/restore',
     desc: '还原文章',
 });
+api[1].list[6].list.push({
+    order: '3',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/article/recycle/download',
+    desc: '下载文章',
+});
 api[1].list.push({
     alias: 'ArticleBackupController',
     order: '8',
@@ -383,7 +487,7 @@ api[1].list[7].list.push({
 });
 api[1].list[7].list.push({
     order: '3',
-    deprecated: 'false',
+    deprecated: 'true',
     url: 'http://127.0.0.1/article/backup/download',
     desc: '下载压缩包',
 });
@@ -433,23 +537,29 @@ api[1].list[8].list.push({
 api[1].list[8].list.push({
     order: '5',
     deprecated: 'false',
+    url: 'http://127.0.0.1/article/stat/words/user',
+    desc: '文章数和文章字数',
+});
+api[1].list[8].list.push({
+    order: '6',
+    deprecated: 'false',
     url: 'http://127.0.0.1/article/stat/words/list',
     desc: '字数统计列表',
 });
 api[1].list[8].list.push({
-    order: '6',
+    order: '7',
     deprecated: 'false',
     url: 'http://127.0.0.1/article/stat/words/save',
     desc: '保存字数统计信息',
 });
 api[1].list[8].list.push({
-    order: '7',
+    order: '8',
     deprecated: 'false',
     url: 'http://127.0.0.1/article/stat/line/open',
     desc: '文章字数折线图 [OP]',
 });
 api[1].list[8].list.push({
-    order: '8',
+    order: '9',
     deprecated: 'false',
     url: 'http://127.0.0.1/article/stat/line',
     desc: '近36月字数折线图',
@@ -502,6 +612,12 @@ api[1].list[9].list.push({
     deprecated: 'false',
     url: 'http://127.0.0.1/picture/stat',
     desc: '统计图片 [OP]',
+});
+api[1].list[9].list.push({
+    order: '8',
+    deprecated: 'false',
+    url: 'http://127.0.0.1/picture/stat/user',
+    desc: '查询用户的图片统计',
 });
 api[1].list.push({
     alias: 'PictureBlosController',

@@ -1,7 +1,11 @@
+### [English](./README-EN.md) | [中文](./README.md)
+
 <p align="center">
 <img src="./doc/imgs/blossom_name.png" height="auto">
 </p>
 <p align="center">
+<a href="https://hellogithub.com/repository/c6947b28421a475bb7b701ef2b4089f8" target="_blank"><img src="https://api.hellogithub.com/v1/widgets/recommend.svg?rid=c6947b28421a475bb7b701ef2b4089f8&claim_uid=HR0k4ei923h8Mda" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<p align="center">  
 <a href="https://www.wangyunf.com/blossom-demo/#/settingindex">💻️ 试用</a> | <a href="https://www.wangyunf.com/blossom-doc/index.html">📃 文档</a> | <a href="https://www.wangyunf.com/blossom-doc/guide/about/download.html">📥 下载</a> 
 </p>
 
@@ -55,12 +59,15 @@ docker compose -f docker/compose/blossom-mysql8.yaml up -d
 
 加入群聊进行沟通，反馈问题。
 
-- 1 群：522359970 (即将满)
-- 2 群：921906098
+- 1 群：522359970 (已满)
+- 2 群：921906098 (已满)
+- 3 群：749721525 (已满)
+- 4 群：936368211
 
 <p align="center">
 <img src="./doc/imgs/qq1.png" height="400">
 <img src="./doc/imgs/qq2.png" height="400">
+<img src="./doc/imgs/qq3.png" height="400">
 </p>
 
 # 🤝 赞助 Blossom
@@ -71,15 +78,11 @@ docker compose -f docker/compose/blossom-mysql8.yaml up -d
 
 **感谢每一个位赞助者对 Blossom 的大力支持，Blossom 因为你们变得更好。**
 
-| 赞助者 / Sponsors    | 赞助者 / Sponsors | 赞助者 / Sponsors | 赞助者 / Sponsors |
-| :------------------- | :---------------- | :---------------- | :---------------- |
-| i just walked away🏃 | KalyanYang        | dsx               | 熊猫不是猫        |
-| 白驹过隙             | 支付宝用户-\*发   | 支付宝用户-\*琛   | 支付宝匿名用户    |
-| 疾风剑豪索隆         | 放羊的星星        | 立冬              | 给你一支烟        |
-| 林诗                 | Criesgod          | 支付宝用户-\*伟   | 黑醋栗和丁香      |
-| Mr_tg000             | Lucky             | egil              | Glimpse           |
-| 支付宝用户-\*\*衡    | 支付宝用户-\*\*福 | 支付宝用户-\*\*盼 | 何其正            |
-| -A 明                | 开心。            | Please            |                   |
+<p align="center">
+  <a target="_blank" href="https://www.wangyunf.com/blossom-doc/guide/about/sponsor-list.html">
+    <img alt="sponsors" src="https://www.wangyunf.com/bl/pic/home/bl/img/U1/pic/sponsor.svg">
+  </a>
+</p>
 
 ---
 
@@ -140,3 +143,11 @@ docker compose -f docker/compose/blossom-mysql8.yaml up -d
 <img src="./doc/imgs/blog_article.png" height="600" style="margin-left: 30px">
 </p>
 <p align="center">博客移动端</p>
+
+
+
+# Star 历史
+                        
+[![Stargazers over time](https://starchart.cc/blossom-editor/blossom.svg?variant=adaptive)](https://starchart.cc/blossom-editor/blossom)
+
+                    

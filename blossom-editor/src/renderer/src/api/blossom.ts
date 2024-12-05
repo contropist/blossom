@@ -40,11 +40,19 @@ export const userParamListApi = (): Promise<R<any>> => {
 }
 
 /**
- * 修改系统参数
+ * 修改用户参数
  * @returns
  */
 export const userParamUpdApi = (data: object): Promise<R<any>> => {
   return rq.post<R<any>>('/user/param/upd', data)
+}
+
+/**
+ * 管理员修改用户参数
+ * @returns
+ */
+export const userParamUpdAdminApi = (data: object): Promise<R<any>> => {
+  return rq.post<R<any>>('/user/param/upd/admin', data)
 }
 
 /**
@@ -84,6 +92,15 @@ export const uploadFileApi = (data?: object): Promise<R<any>> => {
  */
 export const docTreeApi = (params?: object): Promise<R<any>> => {
   return rq.get<R<any>>('/doc/trees', { params })
+}
+
+/**
+ * 修改文档的排序
+ * @param data
+ * @returns
+ */
+export const docUpdSortApi = (data: object): Promise<R<any>> => {
+  return rq.post<R<any>>('/doc/upd/sort', data)
 }
 
 //#endregion
@@ -267,6 +284,15 @@ export const articleStarApi = (data?: object): Promise<R<any>> => {
 }
 
 /**
+ * star 或取消 star
+ * @param data
+ * @returns
+ */
+export const folderStarApi = (data?: object): Promise<R<any>> => {
+  return rq.post<R<any>>('/folder/star', data)
+}
+
+/**
  * 下载文章 markdown
  * @param params
  * @returns
@@ -302,6 +328,15 @@ export const articleWordLineApi = (params?: object): Promise<R<any>> => {
  */
 export const articleWordsApi = (params?: object): Promise<R<any>> => {
   return rq.get<R<any>>('/article/stat/words', { params })
+}
+
+/**
+ * 指定用户的文章数和文章字数统计
+ * @param params
+ * @returns
+ */
+export const articleWordsUserApi = (params?: object): Promise<R<any>> => {
+  return rq.get<R<any>>('/article/stat/words/user', { params })
 }
 
 /**
@@ -345,6 +380,15 @@ export const articleRefListApi = (params?: object): Promise<R<any>> => {
  */
 export const articleOpenApi = (data?: object): Promise<R<any>> => {
   return rq.post<R<any>>('/article/open', data)
+}
+
+/**
+ * 文章公开或取消公开
+ * @param data
+ * @returns
+ */
+export const articleOpenBatchApi = (data?: object): Promise<R<any>> => {
+  return rq.post<R<any>>('/article/open/batch', data)
 }
 
 /**
@@ -415,16 +459,6 @@ export const articleBackupListApi = (): Promise<R<BackupFile[]>> => {
 }
 
 /**
- * 下载备份文件
- * @param params
- * @returns
- */
-export const articleBackupDownloadApi = (params?: object): Promise<any> => {
-  let config = { params: params, responseType: 'blob' }
-  return rq.get('/article/backup/download', config)
-}
-
-/**
  * 获取下载文件信息
  * @param data
  * @returns
@@ -471,6 +505,18 @@ export const articleRecycleListApi = (): Promise<any> => {
  */
 export const articleRecycleRestoreApi = (data?: object): Promise<any> => {
   return rq.post('/article/recycle/restore', data)
+}
+
+export const articleRecycleDownloadApi = (params?: object): Promise<any> => {
+  let config = { params: params, responseType: 'blob' }
+  return rq.get('/article/recycle/download', config)
+}
+
+/**
+ * 文章全文搜索
+ */
+export const articleSearchApi = (params?: object): Promise<any> => {
+  return rq.get('/search', { params })
 }
 //#endregion
 
@@ -529,6 +575,15 @@ export const pictureDelBatchApi = (data?: object): Promise<R<PictureDelBatchRes>
  */
 export const pictureStatApi = (params?: object): Promise<R<any>> => {
   return rq.get<R<any>>('/picture/stat', { params })
+}
+
+/**
+ * 删除图片
+ * @param params {id:id}
+ * @returns
+ */
+export const pictureStatUserApi = (params?: object): Promise<R<any>> => {
+  return rq.get<R<any>>('/picture/stat/user', { params })
 }
 
 /**

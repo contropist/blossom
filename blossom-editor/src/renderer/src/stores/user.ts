@@ -20,7 +20,7 @@ const DEFAULT_WEB_ARTICLE_URL = 'https://www.domain.com/blossom/#/articles?artic
 /**
  * 博客的默认地址
  */
-const DEFAULT_BLOSSOM_OBJECT_STORAGE_DOMAIN = 'http://www.xxx.com/'
+const DEFAULT_BLOSSOM_OBJECT_STORAGE_DOMAIN = 'http://www.google.com/'
 
 /**
  * 登录状态枚举
@@ -48,7 +48,7 @@ const initAuth = () => {
 /**
  * 默认用户信息
  */
-const DEFAULT_USER_INFO = {
+export const DEFAULT_USER_INFO = {
   id: '',
   type: 2,
   username: '暂未登录',
@@ -58,6 +58,8 @@ const DEFAULT_USER_INFO = {
   articleCount: 0,
   articleWords: 0,
   location: '',
+  creTime: '',
+  delTime: '',
   osRes: {
     osType: '',
     bucketName: '',
@@ -94,7 +96,15 @@ const DEFAULT_USER_INFO = {
     WEB_LOGO_URL: '',
     WEB_GONG_WANG_AN_BEI: '',
     WEB_BLOG_URL_ERROR_TIP_SHOW: 1,
-    WEB_BLOG_LINKS: ''
+    WEB_BLOG_LINKS: '',
+    WEB_BLOG_SUBJECT_TITLE: false,
+    WEB_BLOG_COLOR: '',
+    WEB_BLOG_SHOW_ARTICLE_NAME: true,
+    WEB_BLOG_WATERMARK_ENABLED: false,
+    WEB_BLOG_WATERMARK_CONTENT: '',
+    WEB_BLOG_WATERMARK_FONTSIZE: 15,
+    WEB_BLOG_WATERMARK_COLOR: '',
+    WEB_BLOG_WATERMARK_GAP: 100
   }
 }
 
@@ -124,6 +134,9 @@ export const useUserStore = defineStore('userStore', {
     userinfo: (Local.get(userinfoKey) as Userinfo) || initUserinfo()
   }),
   getters: {
+    currentUserId(state) {
+      return state.userinfo.id
+    },
     /**
      * 是否登录
      */

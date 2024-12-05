@@ -1,9 +1,4 @@
-@font-face {
-  font-family: 'ubuntu mono';
-  src: url('./font/UbuntuMono-R-12.ttf');
-  font-weight: normal;
-  font-style: normal;
-}
+@import '../fonts/config.scss';
 
 @import './element/dialog';
 @import './element/drawer';
@@ -12,3 +7,4 @@
 @import './element/message';
 @import './mixin-fuc';
 @import './iconfont';
+@import './common';

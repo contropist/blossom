@@ -4,22 +4,13 @@
       <div>Blossom</div>
       <div class="version">Client {{ CONFIG.SYS.VERSION + getServerVersion() }}</div>
     </div>
-    <!-- <bl-row class="repository" just="center">
-      <bl-col @click="openExtenal(CONFIG.SYS.GITHUB_REPO)">
-        <svg class="github" aria-hidden="true"><use xlink:href="#wl-github2"></use></svg>
-      </bl-col>
-
-      <bl-col @click="openExtenal(CONFIG.SYS.GITEE_REPO)" style="margin-left: 20px">
-        <svg class="gitee" aria-hidden="true"><use xlink:href="#wl-gitee"></use></svg>
-      </bl-col>
-    </bl-row> -->
 
     <bl-col height="fit-content">
       <bl-row just="center" class="about-item" height="50px" width="700px">
         <div class="iconbl bl-books-line"></div>
         <bl-col just="center" align="flex-start" height="100%" width="400px">
           <div class="title">官方帮助文档</div>
-          <div class="desc">可查看 Blossom 更新日志，功能介绍。</div>
+          <div class="desc">查看 Blossom 功能介绍，了解关于项目的更新信息，开发进度以及未来规划的功能。</div>
         </bl-col>
         <div class="btns">
           <el-button size="default" style="width: 55px" @click="openExtenal(CONFIG.SYS.DOC)"> 浏览 </el-button>
@@ -66,7 +57,7 @@
     <bl-col just="center" height="fit-content">
       <div class="blod" style="margin: 80px 0 10px 0">开发者列表</div>
       <div class="developer">
-        <bl-row class="item" v-for="dever in developer" width="250px" height="70px">
+        <bl-row class="item" v-for="dever in developer" width="250px" height="70px" @click="toView(dever.github)">
           <div>
             <img :src="dever.avatar" />
           </div>
@@ -89,18 +80,21 @@
           <li v-for="ref in references">
             <bl-row>
               <span style="width: 180px">{{ ref.name }}</span
-              >: <a :href="ref.url">{{ ref.url }}</a>
+              >: <a :href="ref.url" target="_blank">{{ ref.url }}</a>
             </bl-row>
           </li>
         </ol>
       </div>
     </bl-row>
+
+    <bl-row just="center" class="statement"> 本应用完全免费并开源全部源代码，如果你从付费渠道获取本应用，谨防上当受骗。 </bl-row>
   </div>
 </template>
 
 <script setup lang="ts">
 import CONFIG from '@renderer/assets/constants/system'
 import { openExtenal } from '@renderer/assets/utils/electron'
+import { toView } from '@renderer/assets/utils/util'
 import { useUserStore } from '@renderer/stores/user'
 
 const userStore = useUserStore()
@@ -114,8 +108,15 @@ const references = [
 const developer = [
   {
     name: '小贼贼子',
-    desc: '一个后端程序员，也是一个半吊子前端。',
+    desc: '创建者',
+    github: 'https://github.com/xiaozzzi',
     avatar: 'https://www.wangyunf.com/bl/pic/home/bl/img/U1/head/luban.png'
+  },
+  {
+    name: 'Tianjiu',
+    desc: '项目成员、英文译者',
+    github: 'https://github.com/T1anjiu',
+    avatar: 'https://www.wangyunf.com/bl/pic/home/bl/img/U1/pic/blosteam/T1anjiu.jpg'
   }
 ]
 
@@ -142,8 +143,8 @@ const getServerVersion = () => {
     text-align: center;
 
     .version {
+      @include font(12px, 300);
       color: var(--bl-text-color-light);
-      font-size: 12px;
       text-shadow: none;
     }
   }
@@ -174,7 +175,7 @@ const getServerVersion = () => {
     }
 
     .desc {
-      font-size: 13px;
+      @include font(13px, 300);
       color: var(--bl-text-color-light);
     }
 
@@ -190,10 +191,11 @@ const getServerVersion = () => {
   }
 
   .developer {
-    width: 630px;
     @include flex(row, flex-start, flex-start);
+    width: 630px;
     align-content: flex-start;
     flex-wrap: wrap;
+    cursor: pointer;
 
     .item {
       background-color: var(--bl-bg-color);
@@ -208,6 +210,7 @@ const getServerVersion = () => {
       }
 
       .name {
+        font-size: 14px;
         height: 25px;
       }
 
@@ -217,6 +220,7 @@ const getServerVersion = () => {
       }
     }
   }
+
   .reference {
     width: 630px;
     font-size: 12px;
@@ -225,6 +229,12 @@ const getServerVersion = () => {
     border: 1px dashed #8b8b8b;
     border-radius: 5px;
     color: #8b8b8b;
+  }
+
+  .statement {
+    font-size: 13px;
+    margin-top: 20px;
+    color: var(--bl-text-color-light);
   }
 }
 </style>

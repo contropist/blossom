@@ -2,6 +2,7 @@ package com.blossom.backend.server.article.draft;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.blossom.backend.base.search.EnableIndex;
@@ -18,6 +19,7 @@ import com.blossom.backend.server.doc.pojo.DocTreeRes;
 import com.blossom.backend.server.utils.ArticleUtil;
 import com.blossom.backend.server.utils.DocUtil;
 import com.blossom.common.base.exception.XzException404;
+import com.blossom.common.base.util.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -83,10 +85,11 @@ public class ArticleService extends ServiceImpl<ArticleMapper, ArticleEntity> {
 
     /**
      * 获取所有文章，包含markdown字段，用于索引的批量维护
+     *
      * @return
      */
-    public List<ArticleEntity> listAllArticleWithContent() {
-        List<ArticleEntity> articles = baseMapper.listAllArticleWithContent();
+    public List<ArticleEntity> listAllIndexField() {
+        List<ArticleEntity> articles = baseMapper.listAllIndexField();
         if (CollUtil.isEmpty(articles)) {
             return new ArrayList<>();
         }
@@ -128,7 +131,7 @@ public class ArticleService extends ServiceImpl<ArticleMapper, ArticleEntity> {
      * @param showMarkdown 是否返回 markdown 正文
      * @param showHtml     是否返回 html 正文
      */
-    public ArticleEntity selectById(Long id, boolean showToc, boolean showMarkdown, boolean showHtml) {
+    public ArticleEntity selectById(Long id, boolean showToc, boolean showMarkdown, boolean showHtml, Long userId) {
         QueryWrapper<ArticleEntity> where = new QueryWrapper<>();
         List<String> column = CollUtil.newArrayList("id", "pid", "name", "icon", "tags", "sort", "cover", "describes", "star_status",
                 "open_status", "pv", "uv", "likes", "words", "version", "cre_time", "upd_time");
@@ -142,7 +145,7 @@ public class ArticleService extends ServiceImpl<ArticleMapper, ArticleEntity> {
             column.add("html");
         }
         where.select(column);
-        where.eq("id", id).last("limit 1");
+        where.eq("id", id).eq("user_id", userId).last("limit 1");
         return baseMapper.selectOne(where);
     }
 
@@ -165,6 +168,9 @@ public class ArticleService extends ServiceImpl<ArticleMapper, ArticleEntity> {
     public Long update(ArticleEntity req) {
         XzException404.throwBy(req.getId() == null, "ID不得为空");
         baseMapper.updById(req);
+        if(StrUtil.isNotBlank(req.getName())) {
+            referenceService.updateInnerName(req.getUserId(), req.getId(), req.getName());
+        }
         return req.getId();
     }
 
@@ -183,6 +189,7 @@ public class ArticleService extends ServiceImpl<ArticleMapper, ArticleEntity> {
         if (req.getHtml() != null) {
             req.setHtml(req.getHtml().replaceAll("<p><br></p>", ""));
         }
+        req.setUpdMarkdownTime(DateUtils.date());
         baseMapper.updContentById(req);
         referenceService.bind(req.getUserId(), req.getId(), req.getName(), req.getReferences());
         logService.insert(req.getId(), 0, req.getMarkdown());
@@ -199,8 +206,8 @@ public class ArticleService extends ServiceImpl<ArticleMapper, ArticleEntity> {
      */
     @EnableIndex(type = IndexMsgTypeEnum.DELETE, id = "#id")
     @Transactional(rollbackFor = Exception.class)
-    public void delete(Long id) {
-        ArticleEntity article = selectById(id, false, true, true);
+    public void delete(Long id, Long userId) {
+        ArticleEntity article = selectById(id, false, true, true, userId);
         XzException404.throwBy(ObjUtil.isNull(article), "文章不存在");
         /*
         @since 1.10.0
@@ -211,8 +218,10 @@ public class ArticleService extends ServiceImpl<ArticleMapper, ArticleEntity> {
         baseMapper.deleteById(id);
         // 删除公开文章
         openMapper.delById(id);
-        // 删除引用
+        // 删除主动引用
         referenceService.delete(id);
+        // 将被动引用中的名称修改为未知
+        referenceService.updateToUnknown(userId, id);
         // 删除访问记录
         viewService.delete(id);
     }

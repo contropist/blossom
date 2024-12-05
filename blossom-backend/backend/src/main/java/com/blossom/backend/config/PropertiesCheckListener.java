@@ -15,6 +15,7 @@ import javax.sql.DataSource;
 import java.net.InetSocketAddress;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.TimeZone;
 
 /**
  * 启动检查配置文件内容, 用于检查配置项是否正确
@@ -34,6 +35,7 @@ public class PropertiesCheckListener implements ApplicationListener<ApplicationE
     @Override
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
         ConfigurableEnvironment env = event.getEnvironment();
+        setTimeZone(env);
         log.warn("\n\n正在检查 Blossom 后台配置项\n\n" +
                         "\n[CHECK] ==========================================================================================================================" +
                         "\n[CHECK] 使用环境: [{}], 版本: [{}]" +
@@ -41,15 +43,23 @@ public class PropertiesCheckListener implements ApplicationListener<ApplicationE
                         "\n[CHECK] 数据库配置: {}" +
                         "\n[CHECK] 数据库用户: {}" +
                         "\n[CHECK] 数据库密码: {}" +
-                        "\n[CHECK] 图片前缀: {}" +
-                        "\n[CHECK] 图片存储: {}" +
+                        "\n[CHECK] 文件前缀: {}, 非 [http://www.google.com/] 内容会强制覆盖后台配置" +
+                        "\n[CHECK] 文件存储: {}" +
+                        "\n[CHECK] 文件大小: {}" +
+                        "\n[CHECK] 授权时长: {}" +
+                        "\n[CHECK] 重置密码: {}" +
+                        "\n[CHECK] 指定时区: {}" +
                         "\n[CHECK] ==========================================================================================================================\n\n",
                 get(env, SpringUtil.PROFILE_ACTION), get(env, "project.base.version"),
                 get(env, "spring.datasource.url"),
                 get(env, "spring.datasource.username"),
                 get(env, "spring.datasource.password"),
                 get(env, "project.iaas.blos.domain"),
-                get(env, "project.iaas.blos.default-path")
+                get(env, "project.iaas.blos.default-path"),
+                get(env, "spring.servlet.multipart.max-file-size"),
+                get(env, "project.auth.clients[0].duration"),
+                get(env, "project.auth.password-reset"),
+                get(env, "project.base.time-zone")
         );
 
         String defaultPath = get(env, "project.iaas.blos.default-path");
@@ -160,5 +170,16 @@ public class PropertiesCheckListener implements ApplicationListener<ApplicationE
 
     public boolean isNotReceived(String message) {
         return message.contains("The driver has not received any packets from the server");
+    }
+
+    private void setTimeZone(ConfigurableEnvironment env) {
+        String timeZone = get(env, "project.base.time-zone");
+        if (StrUtil.isBlank(timeZone) || TimeZone.getTimeZone(timeZone) == null) {
+            TimeZone.setDefault(TimeZone.getTimeZone("GMT+8"));
+        } else {
+            TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
+        }
+
+
     }
 }
